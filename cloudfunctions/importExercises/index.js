@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const seedExercises = require("./seed");
 const zhMap = require("./zhMap");
+const { translateExercise } = require("./translate");
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
@@ -140,7 +141,10 @@ async function normalizeExercise(item, options = {}) {
   const secondaryMusclesText = toText(item.secondaryMuscles);
   const imageFileId = options.uploadImages ? await uploadFirstImage(item) : "";
   const rawImageUrl = getImageUrl(item);
-  const zh = zhMap[item.id] || {};
+  const zh = {
+    ...translateExercise(item),
+    ...(zhMap[item.id] || {})
+  };
 
   return {
     exerciseId: item.id,
@@ -160,6 +164,8 @@ async function normalizeExercise(item, options = {}) {
     secondaryMusclesText,
     instructions: item.instructions || [],
     category: item.category || "",
+    categoryZh: zh.categoryZh || "",
+    levelZh: zh.levelZh || "",
     images: item.images || [],
     imageUrl: imageFileId || rawImageUrl,
     imageFileId,

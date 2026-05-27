@@ -7,9 +7,53 @@ cloud.init({
 const db = cloud.database();
 const _ = db.command;
 const EXERCISES = "exercises";
+const zhKeywordMap = {
+  腹肌: "abdominals",
+  腹部: "abdominals",
+  胸: "chest",
+  胸部: "chest",
+  背: "back",
+  背部: "back",
+  背阔肌: "lats",
+  下背: "lower back",
+  中背: "middle back",
+  肩: "shoulders",
+  肩部: "shoulders",
+  腿: "quadriceps",
+  股四头肌: "quadriceps",
+  腘绳肌: "hamstrings",
+  臀: "glutes",
+  臀部: "glutes",
+  小腿: "calves",
+  二头: "biceps",
+  肱二头肌: "biceps",
+  三头: "triceps",
+  肱三头肌: "triceps",
+  杠铃: "barbell",
+  哑铃: "dumbbell",
+  自重: "body only",
+  绳索: "cable",
+  壶铃: "kettlebells",
+  弹力带: "bands",
+  器械: "machine",
+  卧推: "bench press",
+  深蹲: "squat",
+  硬拉: "deadlift",
+  划船: "row",
+  弯举: "curl",
+  引体: "pullup",
+  俯卧撑: "pushup",
+  箭步蹲: "lunge",
+  平板支撑: "plank"
+};
 
 function normalizeKeyword(value) {
   return String(value || "").trim();
+}
+
+function keywordVariants(keyword) {
+  const mapped = zhKeywordMap[keyword];
+  return mapped && mapped !== keyword ? [keyword, mapped] : [keyword];
 }
 
 async function withTempImageUrls(data) {
@@ -46,25 +90,31 @@ exports.main = async (event) => {
       return { data: await withTempImageUrls(result.data) };
     }
 
-    const matcher = db.RegExp({
-      regexp: keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-      options: "i"
+    const matchers = keywordVariants(keyword).map((value) =>
+      db.RegExp({
+        regexp: value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+        options: "i"
+      })
+    );
+    const conditions = [];
+    matchers.forEach((matcher) => {
+      conditions.push(
+        { name: matcher },
+        { nameZh: matcher },
+        { displayName: matcher },
+        { muscle: matcher },
+        { muscleZh: matcher },
+        { equipment: matcher },
+        { equipmentZh: matcher },
+        { categoryZh: matcher },
+        { levelZh: matcher },
+        { primaryMusclesText: matcher }
+      );
     });
 
     const result = await db
       .collection(EXERCISES)
-      .where(
-        _.or([
-          { name: matcher },
-          { nameZh: matcher },
-          { displayName: matcher },
-          { muscle: matcher },
-          { muscleZh: matcher },
-          { equipment: matcher },
-          { equipmentZh: matcher },
-          { primaryMusclesText: matcher }
-        ])
-      )
+      .where(_.or(conditions))
       .limit(limit)
       .get();
 

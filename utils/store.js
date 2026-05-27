@@ -1,4 +1,5 @@
 const { formatDate } = require("./date");
+const { translateExercise } = require("./exerciseTranslate");
 
 const KEYS = {
   workouts: "fitness.workouts",
@@ -67,10 +68,17 @@ function ensureSeedData() {
 
 function normalizeExercise(item) {
   const imageUrl = item.imageUrl || item.image || item.thumbnail || "/assets/app-icon-256.png";
-  const name = item.displayName || item.nameZh || item.name || item.title || "未命名动作";
+  const translated = translateExercise(item);
+  const name = item.displayName || item.nameZh || translated.nameZh || item.name || item.title || "未命名动作";
   const nameEn = item.name || item.title || "";
-  const muscle = item.muscleZh || item.muscle || item.primaryMusclesText || (item.primaryMuscles || []).join("/") || "未分类";
-  const equipment = item.equipmentZh || item.equipment || item.equipmentText || "未知器械";
+  const muscle =
+    item.muscleZh ||
+    translated.muscleZh ||
+    item.muscle ||
+    item.primaryMusclesText ||
+    (item.primaryMuscles || []).join("/") ||
+    "未分类";
+  const equipment = item.equipmentZh || translated.equipmentZh || item.equipment || item.equipmentText || "未知器械";
 
   return {
     ...item,
