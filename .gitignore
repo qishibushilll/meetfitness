@@ -1,0 +1,11 @@
+node_modules/
+miniprogram_npm/
+dist/
+.DS_Store
+Thumbs.db
+*.log
+
+# WeChat DevTools local metadata
+project.private.config.json
+.idea/
+.vscode/

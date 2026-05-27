@@ -1,0 +1,8 @@
+.small-button {
+  width: 128rpx;
+  min-width: 128rpx;
+  height: 64rpx;
+  margin: 0;
+  font-size: 26rpx;
+  line-height: 64rpx;
+}

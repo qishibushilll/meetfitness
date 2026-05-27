@@ -1,0 +1,20 @@
+.history-item {
+  min-height: 150rpx;
+}
+
+.calories {
+  flex: 0 0 154rpx;
+  color: #0f7b6c;
+  font-size: 28rpx;
+  font-weight: 700;
+  text-align: right;
+}
+
+.history-detail {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12rpx;
+  margin-top: 18rpx;
+  color: #58636d;
+  font-size: 24rpx;
+}

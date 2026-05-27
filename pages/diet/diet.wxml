@@ -1,0 +1,59 @@
+<view class="page">
+  <view class="section">
+    <view class="title">添加饮食</view>
+    <view class="subtitle">记录餐次、食物、热量和蛋白质</view>
+  </view>
+
+  <view class="section panel">
+    <view class="form-item">
+      <text class="label">日期</text>
+      <picker mode="date" value="{{form.date}}" bindchange="onDateChange">
+        <view class="picker-value">{{form.date}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">餐次</text>
+      <picker range="{{mealTypes}}" value="{{mealTypeIndex}}" bindchange="onMealTypeChange">
+        <view class="picker-value">{{selectedMealType}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">食物</text>
+      <input class="input" value="{{form.food}}" placeholder="例如 鸡胸肉 150g + 米饭 200g" data-field="food" bindinput="onInput" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">热量 kcal / 蛋白质 g</text>
+      <view class="inline-inputs two-cols">
+        <input class="input" type="number" value="{{form.calories}}" placeholder="热量" data-field="calories" bindinput="onInput" />
+        <input class="input" type="digit" value="{{form.protein}}" placeholder="蛋白质" data-field="protein" bindinput="onInput" />
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="label">备注</text>
+      <input class="input" value="{{form.note}}" placeholder="例如 外食、训练前、训练后" data-field="note" bindinput="onInput" />
+    </view>
+
+    <button class="primary-button" bindtap="saveMeal">保存饮食</button>
+  </view>
+
+  <view class="section">
+    <view class="section-title">{{form.date}} 饮食</view>
+    <view wx:if="{{selectedDateMeals.length}}" class="list">
+      <view wx:for="{{selectedDateMeals}}" wx:key="id" class="list-item">
+        <view class="row-between">
+          <view>
+            <view class="item-title">{{item.type}} · {{item.food}}</view>
+            <view class="item-meta">{{item.calories}} kcal · 蛋白质 {{item.protein}} g</view>
+            <view wx:if="{{item.note}}" class="item-meta">{{item.note}}</view>
+          </view>
+          <button class="danger-button icon-button" data-id="{{item.id}}" bindtap="removeMeal">删</button>
+        </view>
+      </view>
+    </view>
+    <view wx:else class="panel empty">这一天还没有饮食记录</view>
+  </view>
+</view>

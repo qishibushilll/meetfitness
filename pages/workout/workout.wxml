@@ -1,0 +1,55 @@
+<view class="page">
+  <view class="section">
+    <view class="title">添加训练</view>
+    <view class="subtitle">记录动作、重量、次数和备注</view>
+  </view>
+
+  <view class="section panel">
+    <view class="form-item">
+      <text class="label">日期</text>
+      <picker mode="date" value="{{form.date}}" bindchange="onDateChange">
+        <view class="picker-value">{{form.date}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">动作</text>
+      <picker range="{{exerciseNames}}" value="{{exerciseIndex}}" bindchange="onExerciseChange">
+        <view class="picker-value">{{selectedExerciseName}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">组数 / 次数 / 重量 kg</text>
+      <view class="inline-inputs">
+        <input class="input" type="number" value="{{form.sets}}" placeholder="组数" data-field="sets" bindinput="onInput" />
+        <input class="input" type="number" value="{{form.reps}}" placeholder="次数" data-field="reps" bindinput="onInput" />
+        <input class="input" type="digit" value="{{form.weight}}" placeholder="重量" data-field="weight" bindinput="onInput" />
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="label">备注</text>
+      <input class="input" value="{{form.note}}" placeholder="例如 RPE 8、动作感觉、疼痛点" data-field="note" bindinput="onInput" />
+    </view>
+
+    <button class="primary-button" bindtap="saveWorkout">保存训练</button>
+  </view>
+
+  <view class="section">
+    <view class="section-title">{{form.date}} 训练</view>
+    <view wx:if="{{selectedDateWorkouts.length}}" class="list">
+      <view wx:for="{{selectedDateWorkouts}}" wx:key="id" class="list-item">
+        <view class="row-between">
+          <view>
+            <view class="item-title">{{item.exerciseName}}</view>
+            <view class="item-meta">{{item.sets}} 组 x {{item.reps}} 次 · {{item.weight}} kg</view>
+            <view wx:if="{{item.note}}" class="item-meta">{{item.note}}</view>
+          </view>
+          <button class="danger-button icon-button" data-id="{{item.id}}" bindtap="removeWorkout">删</button>
+        </view>
+      </view>
+    </view>
+    <view wx:else class="panel empty">这一天还没有训练记录</view>
+  </view>
+</view>

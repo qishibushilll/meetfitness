@@ -1,0 +1,26 @@
+<view class="page">
+  <view class="section">
+    <view class="title">历史记录</view>
+    <view class="subtitle">按日期查看训练和饮食汇总</view>
+  </view>
+
+  <view wx:if="{{history.length}}" class="list">
+    <view wx:for="{{history}}" wx:key="date" class="list-item history-item">
+      <view class="row-between">
+        <view>
+          <view class="item-title">{{item.displayDate}}</view>
+          <view class="item-meta">
+            训练 {{item.workoutCount}} 项 / {{item.workoutSets}} 组 · 饮食 {{item.mealCount}} 条
+          </view>
+        </view>
+        <view class="calories">{{item.calories}} kcal</view>
+      </view>
+      <view class="history-detail">
+        <view>训练容量 {{item.workoutVolume}} kg</view>
+        <view>蛋白质 {{item.protein}} g</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="panel empty">还没有历史记录</view>
+</view>

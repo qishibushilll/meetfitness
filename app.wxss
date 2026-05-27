@@ -1,0 +1,188 @@
+page {
+  min-height: 100%;
+  background: #f5f7f8;
+  color: #1a1f24;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+view,
+text,
+button,
+input,
+picker {
+  box-sizing: border-box;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 28rpx 28rpx 48rpx;
+}
+
+.section {
+  margin-bottom: 28rpx;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1rpx solid #e5e9ec;
+  border-radius: 12rpx;
+  padding: 28rpx;
+}
+
+.panel + .panel {
+  margin-top: 20rpx;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.title {
+  font-size: 38rpx;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.subtitle {
+  margin-top: 8rpx;
+  color: #68717a;
+  font-size: 26rpx;
+}
+
+.section-title {
+  margin: 8rpx 0 18rpx;
+  color: #2b3238;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.muted {
+  color: #68717a;
+  font-size: 24rpx;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+}
+
+.metric {
+  min-width: 0;
+  background: #eef5f3;
+  border-radius: 10rpx;
+  padding: 20rpx 16rpx;
+}
+
+.metric-value {
+  color: #0f7b6c;
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.metric-label {
+  margin-top: 6rpx;
+  color: #58636d;
+  font-size: 22rpx;
+}
+
+.form-item {
+  margin-bottom: 18rpx;
+}
+
+.label {
+  display: block;
+  margin-bottom: 10rpx;
+  color: #44505a;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.input,
+.picker-value {
+  width: 100%;
+  min-height: 76rpx;
+  border: 1rpx solid #d8dee3;
+  border-radius: 10rpx;
+  padding: 0 20rpx;
+  background: #ffffff;
+  color: #1a1f24;
+  font-size: 28rpx;
+  line-height: 76rpx;
+}
+
+.inline-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14rpx;
+}
+
+.primary-button,
+.secondary-button,
+.danger-button {
+  height: 78rpx;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  line-height: 78rpx;
+}
+
+.primary-button {
+  background: #0f7b6c;
+  color: #ffffff;
+}
+
+.secondary-button {
+  background: #eef2f4;
+  color: #27313a;
+}
+
+.danger-button {
+  background: #fff0ed;
+  color: #bf3d2c;
+}
+
+button::after {
+  border: none;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.list-item {
+  background: #ffffff;
+  border: 1rpx solid #e5e9ec;
+  border-radius: 12rpx;
+  padding: 22rpx;
+}
+
+.item-title {
+  color: #1f272e;
+  font-size: 29rpx;
+  font-weight: 700;
+}
+
+.item-meta {
+  margin-top: 8rpx;
+  color: #68717a;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.empty {
+  padding: 42rpx 20rpx;
+  text-align: center;
+  color: #7a848e;
+  font-size: 26rpx;
+}

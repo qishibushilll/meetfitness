@@ -1,0 +1,53 @@
+<view class="page">
+  <view class="section">
+    <view class="title">今日记录</view>
+    <view class="subtitle">{{displayDate}}</view>
+  </view>
+
+  <view class="section panel">
+    <view class="metric-grid">
+      <view class="metric">
+        <view class="metric-value">{{summary.workoutSets}}</view>
+        <view class="metric-label">训练组数</view>
+      </view>
+      <view class="metric">
+        <view class="metric-value">{{summary.calories}}</view>
+        <view class="metric-label">摄入 kcal</view>
+      </view>
+      <view class="metric">
+        <view class="metric-value">{{summary.protein}}</view>
+        <view class="metric-label">蛋白质 g</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="row-between">
+      <view class="section-title">训练</view>
+      <button class="secondary-button small-button" bindtap="goWorkout">添加</button>
+    </view>
+    <view wx:if="{{summary.workouts.length}}" class="list">
+      <view wx:for="{{summary.workouts}}" wx:key="id" class="list-item">
+        <view class="item-title">{{item.exerciseName}}</view>
+        <view class="item-meta">{{item.sets}} 组 x {{item.reps}} 次 · {{item.weight}} kg</view>
+        <view wx:if="{{item.note}}" class="item-meta">{{item.note}}</view>
+      </view>
+    </view>
+    <view wx:else class="panel empty">今天还没有训练记录</view>
+  </view>
+
+  <view class="section">
+    <view class="row-between">
+      <view class="section-title">饮食</view>
+      <button class="secondary-button small-button" bindtap="goDiet">添加</button>
+    </view>
+    <view wx:if="{{summary.meals.length}}" class="list">
+      <view wx:for="{{summary.meals}}" wx:key="id" class="list-item">
+        <view class="item-title">{{item.type}} · {{item.food}}</view>
+        <view class="item-meta">{{item.calories}} kcal · 蛋白质 {{item.protein}} g</view>
+        <view wx:if="{{item.note}}" class="item-meta">{{item.note}}</view>
+      </view>
+    </view>
+    <view wx:else class="panel empty">今天还没有饮食记录</view>
+  </view>
+</view>

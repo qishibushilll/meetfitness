@@ -1,0 +1,38 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/workout/workout",
+    "pages/diet/diet",
+    "pages/history/history"
+  ],
+  "window": {
+    "navigationBarTitleText": "Fitness",
+    "navigationBarBackgroundColor": "#101418",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f7f8"
+  },
+  "tabBar": {
+    "color": "#6d747c",
+    "selectedColor": "#0f7b6c",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "今日"
+      },
+      {
+        "pagePath": "pages/workout/workout",
+        "text": "训练"
+      },
+      {
+        "pagePath": "pages/diet/diet",
+        "text": "饮食"
+      },
+      {
+        "pagePath": "pages/history/history",
+        "text": "历史"
+      }
+    ]
+  }
+}
