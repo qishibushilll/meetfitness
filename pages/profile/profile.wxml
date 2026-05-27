@@ -7,11 +7,29 @@
   <view class="section panel">
     <view class="row-between">
       <view>
-        <view class="profile-name">{{profile.nickName}}</view>
+        <view class="profile-name">{{displayName}}</view>
         <view class="item-meta">{{roleText}}</view>
       </view>
       <view class="role-badge">{{roleBadge}}</view>
     </view>
+  </view>
+
+  <view wx:if="{{isUnregistered}}" class="section panel">
+    <view class="section-title">注册</view>
+    <view class="form-item">
+      <text class="label">昵称</text>
+      <input class="input" value="{{form.nickName}}" placeholder="请输入昵称" bindinput="onNicknameInput" />
+    </view>
+    <button class="primary-button" loading="{{saving}}" bindtap="saveProfile">完成注册</button>
+  </view>
+
+  <view wx:else class="section panel">
+    <view class="section-title">资料</view>
+    <view class="form-item">
+      <text class="label">昵称</text>
+      <input class="input" value="{{form.nickName}}" placeholder="请输入昵称" bindinput="onNicknameInput" />
+    </view>
+    <button class="secondary-button" loading="{{saving}}" bindtap="saveProfile">保存资料</button>
   </view>
 
   <view class="section">

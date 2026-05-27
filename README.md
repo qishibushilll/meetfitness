@@ -9,19 +9,22 @@
 - `exercises`: 动作库，来自 `yuhonas/free-exercise-db`
 - `workouts`: 用户训练记录
 - `meals`: 用户饮食记录
+- `users`: 用户资料和角色
 
 建议权限：
 
 - `exercises`: 所有人可读，仅管理员可写
 - `workouts`: 仅创建者可读写
 - `meals`: 仅创建者可读写
+- `users`: 仅创建者可读写；管理员维护建议通过云函数
 
 ## 导入动作库
 
 1. 在微信开发者工具中右键 `cloudfunctions/importExercises`，选择上传并部署。
 2. 右键 `cloudfunctions/exerciseApi`，选择上传并部署。
-3. 打开云开发控制台，测试运行 `importExercises`。
-4. 首次调试可以传入：
+3. 右键 `cloudfunctions/userApi`，选择上传并部署。
+4. 打开云开发控制台，测试运行 `importExercises`。
+5. 首次调试可以传入：
 
 ```json
 {
@@ -119,13 +122,16 @@ seed 动作会同时写入中文字段，例如 `nameZh`、`muscleZh`、`equipme
 
 ## 用户角色
 
-用户角色保存在 `users` 集合。普通用户默认：
+用户登录和注册通过 `cloudfunctions/userApi` 完成。首次进入“我的”页时，云函数会用微信 openid 自动创建 `users` 记录，默认：
 
 ```json
 {
+  "registered": false,
   "role": "user"
 }
 ```
+
+用户填写昵称后，`registered` 会变为 `true`。
 
 要让某个账号看到管理员入口，在云开发数据库 `users` 集合中把该用户记录改成：
 

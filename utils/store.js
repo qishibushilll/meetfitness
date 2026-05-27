@@ -120,8 +120,11 @@ function normalizeUserProfile(item = {}) {
   return {
     id: item._id || item.id || "",
     openid: item._openid || item.openid || "",
-    nickName: item.nickName || "普通用户",
+    nickName: item.nickName || "",
+    avatarUrl: item.avatarUrl || "",
+    gender: item.gender || "",
     role: item.role === "admin" ? "admin" : "user",
+    registered: Boolean(item.registered),
     createdAt: item.createdAt || Date.now(),
     updatedAt: item.updatedAt || Date.now()
   };
@@ -135,28 +138,42 @@ async function getUserProfile() {
   }
 
   try {
-    const result = await db().collection(COLLECTIONS.users).limit(1).get();
-    if (result.data.length) {
-      const profile = normalizeUserProfile(result.data[0]);
-      wx.setStorageSync(KEYS.userProfile, profile);
-      return profile;
-    }
-
-    const profile = normalizeUserProfile();
-    await db().collection(COLLECTIONS.users).add({
+    const result = await wx.cloud.callFunction({
+      name: "userApi",
       data: {
-        nickName: profile.nickName,
-        role: "user",
-        createdAt: Date.now(),
-        updatedAt: Date.now()
+        action: "login"
       }
     });
+    const profile = normalizeUserProfile(result.result.user);
     wx.setStorageSync(KEYS.userProfile, profile);
     return profile;
   } catch (error) {
     console.warn("Failed to load user profile from cloud", error);
     return cached || normalizeUserProfile();
   }
+}
+
+async function updateUserProfile(payload) {
+  if (!canUseCloud()) {
+    const profile = normalizeUserProfile({
+      ...payload,
+      registered: true,
+      role: "user"
+    });
+    wx.setStorageSync(KEYS.userProfile, profile);
+    return profile;
+  }
+
+  const result = await wx.cloud.callFunction({
+    name: "userApi",
+    data: {
+      action: "updateProfile",
+      profile: payload
+    }
+  });
+  const profile = normalizeUserProfile(result.result.user);
+  wx.setStorageSync(KEYS.userProfile, profile);
+  return profile;
 }
 
 async function getAdminStats() {
@@ -437,6 +454,7 @@ module.exports = {
   getWorkouts,
   getMeals,
   getUserProfile,
+  updateUserProfile,
   getAdminStats,
   addWorkout,
   addMeal,
