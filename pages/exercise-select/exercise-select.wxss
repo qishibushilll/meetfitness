@@ -2,6 +2,21 @@
   margin-top: 18rpx;
 }
 
+.submit-entry {
+  margin-top: 14rpx;
+}
+
+.link-button {
+  width: 100%;
+  height: 58rpx;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: #0f7b6c;
+  font-size: 25rpx;
+  line-height: 58rpx;
+}
+
 .retry-button {
   margin-top: 22rpx;
 }

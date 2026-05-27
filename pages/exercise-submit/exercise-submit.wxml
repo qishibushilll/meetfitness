@@ -1,0 +1,46 @@
+<view class="page">
+  <view class="section">
+    <view class="title">提交新动作</view>
+    <view class="subtitle">动作库找不到时提交，管理员审核通过后进入正式动作库</view>
+  </view>
+
+  <view class="section panel">
+    <view class="form-item">
+      <text class="label">动作名称</text>
+      <input class="input" value="{{form.name}}" placeholder="例如 站姿弹力带划船" data-field="name" bindinput="onInput" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">训练部位</text>
+      <picker value="{{muscleIndex}}" range="{{muscleOptions}}" bindchange="onMuscleChange">
+        <view class="picker-value">{{form.muscle}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">器械</text>
+      <input class="input" value="{{form.equipment}}" placeholder="例如 哑铃、杠铃、自重、器械" data-field="equipment" bindinput="onInput" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">动作图片</text>
+      <view class="upload-box" bindtap="chooseImage">
+        <image wx:if="{{imagePreviewUrl}}" class="upload-image" src="{{imagePreviewUrl}}" mode="aspectFill" />
+        <view wx:else class="upload-empty">选择图片</view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="label">说明</text>
+      <textarea
+        class="textarea"
+        value="{{form.note}}"
+        placeholder="补充动作姿势、发力位置或注意事项"
+        data-field="note"
+        bindinput="onInput"
+      />
+    </view>
+
+    <button class="primary-button" loading="{{submitting}}" bindtap="submitExercise">提交审核</button>
+  </view>
+</view>

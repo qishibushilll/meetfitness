@@ -10,6 +10,7 @@
 - `workouts`: 用户训练记录
 - `meals`: 用户饮食记录
 - `users`: 用户资料和角色
+- `exerciseSubmissions`: 用户提交的新增动作，管理员审核后进入动作库
 
 建议权限：
 
@@ -17,14 +18,17 @@
 - `workouts`: 仅创建者可读写
 - `meals`: 仅创建者可读写
 - `users`: 仅创建者可读写；管理员维护建议通过云函数
+- `exerciseSubmissions`: 仅创建者可写，管理员通过云函数审核
 
 ## 导入动作库
 
 1. 在微信开发者工具中右键 `cloudfunctions/importExercises`，选择上传并部署。
 2. 右键 `cloudfunctions/exerciseApi`，选择上传并部署。
 3. 右键 `cloudfunctions/userApi`，选择上传并部署。
-4. 打开云开发控制台，测试运行 `importExercises`。
-5. 首次调试可以传入：
+4. 右键 `cloudfunctions/exerciseSubmissionApi`，选择上传并部署。
+5. 右键 `cloudfunctions/adminApi`，选择上传并部署。
+6. 打开云开发控制台，测试运行 `importExercises`。
+7. 首次调试可以传入：
 
 ```json
 {
@@ -143,3 +147,18 @@ seed 动作会同时写入中文字段，例如 `nameZh`、`muscleZh`、`equipme
 ```
 
 当前版本先做页面入口控制。生产环境还需要把管理员写操作放到云函数里，并在云函数中校验 `users.role === "admin"`，避免普通用户绕过前端直接改数据库。
+
+## 管理员审核动作
+
+用户在动作选择页点击“找不到动作？提交新动作”，可以填写动作名、训练部位、器械、说明并上传图片。提交后数据会进入 `exerciseSubmissions` 集合，状态为 `pending`。
+
+管理员进入“我的”页里的“数据库维护”，可以查看“待审核动作”：
+
+- 点击“通过”：`adminApi` 会把该动作写入正式 `exercises` 集合，并把提交记录标记为 `approved`
+- 点击“拒绝”：只把提交记录标记为 `rejected`，不会写入动作库
+
+审核功能依赖：
+
+- `cloudfunctions/exerciseSubmissionApi`：普通用户提交缺失动作
+- `cloudfunctions/adminApi`：管理员查看、通过、拒绝待审核动作
+- `users.role` 必须为 `admin`，否则 `adminApi` 会拒绝操作

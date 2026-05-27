@@ -9,6 +9,7 @@ view,
 text,
 button,
 input,
+textarea,
 picker {
   box-sizing: border-box;
 }

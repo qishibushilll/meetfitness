@@ -29,6 +29,33 @@
     </view>
 
     <view class="section">
+      <view class="row-between section-heading">
+        <view class="section-title">待审核动作</view>
+        <button class="secondary-button refresh-button" loading="{{loading}}" bindtap="loadAdminData">刷新</button>
+      </view>
+
+      <view wx:if="{{hasSubmissions}}" class="list">
+        <view wx:for="{{submissions}}" wx:key="id" class="list-item review-item">
+          <view class="review-main">
+            <image class="review-image" src="{{item.imageUrl}}" mode="aspectFill" />
+            <view class="review-body">
+              <view class="item-title">{{item.name}}</view>
+              <view class="item-meta">{{item.muscle}} · {{item.equipment}}</view>
+              <view wx:if="{{item.note}}" class="item-meta">{{item.note}}</view>
+              <view class="item-meta">提交时间：{{item.createdAtText}}</view>
+            </view>
+          </view>
+          <view class="review-actions">
+            <button class="primary-button review-button" data-id="{{item.id}}" bindtap="approveSubmission">通过</button>
+            <button class="danger-button review-button" data-id="{{item.id}}" bindtap="rejectSubmission">拒绝</button>
+          </view>
+        </view>
+      </view>
+
+      <view wx:else class="panel empty">暂无待审核动作</view>
+    </view>
+
+    <view class="section">
       <view class="section-title">维护模块</view>
       <view class="list">
         <view class="list-item">

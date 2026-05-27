@@ -178,6 +178,10 @@ Page({
     });
   },
 
+  goSubmitExercise() {
+    wx.navigateTo({ url: "/pages/exercise-submit/exercise-submit" });
+  },
+
   selectExercise(event) {
     const exercise = this.data.exercises[event.currentTarget.dataset.index];
     wx.setStorageSync("fitness.selectedExercise", exercise);

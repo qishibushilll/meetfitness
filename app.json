@@ -3,6 +3,7 @@
     "pages/home/home",
     "pages/workout/workout",
     "pages/exercise-select/exercise-select",
+    "pages/exercise-submit/exercise-submit",
     "pages/diet/diet",
     "pages/history/history",
     "pages/profile/profile",

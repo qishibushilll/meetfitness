@@ -5,14 +5,16 @@ const KEYS = {
   workouts: "fitness.workouts",
   meals: "fitness.meals",
   exercises: "fitness.exercises",
-  userProfile: "fitness.userProfile"
+  userProfile: "fitness.userProfile",
+  exerciseSubmissions: "fitness.exerciseSubmissions"
 };
 
 const COLLECTIONS = {
   workouts: "workouts",
   meals: "meals",
   exercises: "exercises",
-  users: "users"
+  users: "users",
+  exerciseSubmissions: "exerciseSubmissions"
 };
 
 const DEFAULT_EXERCISES = [
@@ -131,6 +133,32 @@ function normalizeUserProfile(item = {}) {
   };
 }
 
+function normalizeExerciseSubmission(item = {}) {
+  const createdAt = item.createdAt || Date.now();
+  const createdAtDate = new Date(createdAt);
+  const createdAtText = Number.isNaN(createdAtDate.getTime())
+    ? ""
+    : `${createdAtDate.getFullYear()}-${String(createdAtDate.getMonth() + 1).padStart(2, "0")}-${String(
+        createdAtDate.getDate()
+      ).padStart(2, "0")} ${String(createdAtDate.getHours()).padStart(2, "0")}:${String(
+        createdAtDate.getMinutes()
+      ).padStart(2, "0")}`;
+
+  return {
+    ...item,
+    id: item._id || item.id || "",
+    name: item.nameZh || item.name || "未命名动作",
+    muscle: item.muscleZh || item.muscle || "其他",
+    equipment: item.equipmentZh || item.equipment || "其他",
+    note: item.note || "",
+    imageUrl: item.imageUrl || "/assets/app-icon-256.png",
+    imageFileId: item.imageFileId || "",
+    status: item.status || "pending",
+    createdAt,
+    createdAtText
+  };
+}
+
 async function getUserProfile() {
   const cached = wx.getStorageSync(KEYS.userProfile);
 
@@ -208,6 +236,76 @@ async function getAdminStats() {
   ]);
 
   return { exercises, meals, workouts, users };
+}
+
+async function getPendingExerciseSubmissions() {
+  if (!canUseCloud()) {
+    return getList(KEYS.exerciseSubmissions || "fitness.exerciseSubmissions")
+      .filter((item) => item.status === "pending")
+      .map(normalizeExerciseSubmission);
+  }
+
+  const result = await wx.cloud.callFunction({
+    name: "adminApi",
+    data: {
+      action: "listPending"
+    }
+  });
+
+  return (result.result.submissions || []).map(normalizeExerciseSubmission);
+}
+
+async function reviewExerciseSubmission(id, decision, reviewNote = "") {
+  if (!canUseCloud()) {
+    return { id, decision };
+  }
+
+  const result = await wx.cloud.callFunction({
+    name: "adminApi",
+    data: {
+      action: decision === "reject" ? "reject" : "approve",
+      id,
+      reviewNote
+    }
+  });
+
+  wx.removeStorageSync(KEYS.exercises);
+  return result.result;
+}
+
+async function submitExerciseSubmission(payload) {
+  const record = {
+    name: (payload.name || "").trim(),
+    muscle: (payload.muscle || "").trim(),
+    equipment: (payload.equipment || "").trim(),
+    note: (payload.note || "").trim(),
+    imageUrl: payload.imageUrl || "",
+    imageFileId: payload.imageFileId || ""
+  };
+
+  if (!canUseCloud()) {
+    const submissionsKey = KEYS.exerciseSubmissions || "fitness.exerciseSubmissions";
+    const item = normalizeExerciseSubmission({
+      ...record,
+      id: `s_${Date.now()}`,
+      status: "pending",
+      createdAt: Date.now()
+    });
+    const submissions = getList(submissionsKey);
+    submissions.unshift(item);
+    setList(submissionsKey, submissions);
+    return item;
+  }
+
+  const result = await wx.cloud.callFunction({
+    name: "exerciseSubmissionApi",
+    data: {
+      action: "submit",
+      exercise: record
+    }
+  });
+
+  return normalizeExerciseSubmission(result.result);
 }
 
 async function getExercises(options = {}) {
@@ -457,6 +555,9 @@ module.exports = {
   getUserProfile,
   updateUserProfile,
   getAdminStats,
+  getPendingExerciseSubmissions,
+  reviewExerciseSubmission,
+  submitExerciseSubmission,
   addWorkout,
   addMeal,
   removeWorkout,

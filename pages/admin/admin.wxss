@@ -1,3 +1,51 @@
 .admin-metrics {
   grid-template-columns: repeat(2, 1fr);
 }
+
+.section-heading {
+  margin-bottom: 18rpx;
+}
+
+.refresh-button {
+  width: 120rpx;
+  min-width: 120rpx;
+  height: 64rpx;
+  margin: 0;
+  font-size: 25rpx;
+  line-height: 64rpx;
+}
+
+.review-item {
+  padding: 20rpx;
+}
+
+.review-main {
+  display: flex;
+  gap: 18rpx;
+}
+
+.review-image {
+  flex: 0 0 150rpx;
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 10rpx;
+  background: #eef2f4;
+}
+
+.review-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.review-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+  margin-top: 18rpx;
+}
+
+.review-button {
+  height: 68rpx;
+  font-size: 26rpx;
+  line-height: 68rpx;
+}
