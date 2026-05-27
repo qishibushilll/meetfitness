@@ -4,7 +4,9 @@
     "pages/workout/workout",
     "pages/exercise-select/exercise-select",
     "pages/diet/diet",
-    "pages/history/history"
+    "pages/history/history",
+    "pages/profile/profile",
+    "pages/admin/admin"
   ],
   "window": {
     "navigationBarTitleText": "Fitness",
@@ -33,6 +35,10 @@
       {
         "pagePath": "pages/history/history",
         "text": "历史"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
       }
     ]
   }

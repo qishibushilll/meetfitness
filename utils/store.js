@@ -4,13 +4,15 @@ const { translateExercise } = require("./exerciseTranslate");
 const KEYS = {
   workouts: "fitness.workouts",
   meals: "fitness.meals",
-  exercises: "fitness.exercises"
+  exercises: "fitness.exercises",
+  userProfile: "fitness.userProfile"
 };
 
 const COLLECTIONS = {
   workouts: "workouts",
   meals: "meals",
-  exercises: "exercises"
+  exercises: "exercises",
+  users: "users"
 };
 
 const DEFAULT_EXERCISES = [
@@ -112,6 +114,82 @@ function normalizeMeal(item) {
     calories: Number(item.calories) || 0,
     protein: Number(item.protein) || 0
   };
+}
+
+function normalizeUserProfile(item = {}) {
+  return {
+    id: item._id || item.id || "",
+    openid: item._openid || item.openid || "",
+    nickName: item.nickName || "普通用户",
+    role: item.role === "admin" ? "admin" : "user",
+    createdAt: item.createdAt || Date.now(),
+    updatedAt: item.updatedAt || Date.now()
+  };
+}
+
+async function getUserProfile() {
+  const cached = wx.getStorageSync(KEYS.userProfile);
+
+  if (!canUseCloud()) {
+    return cached || normalizeUserProfile();
+  }
+
+  try {
+    const result = await db().collection(COLLECTIONS.users).limit(1).get();
+    if (result.data.length) {
+      const profile = normalizeUserProfile(result.data[0]);
+      wx.setStorageSync(KEYS.userProfile, profile);
+      return profile;
+    }
+
+    const profile = normalizeUserProfile();
+    await db().collection(COLLECTIONS.users).add({
+      data: {
+        nickName: profile.nickName,
+        role: "user",
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      }
+    });
+    wx.setStorageSync(KEYS.userProfile, profile);
+    return profile;
+  } catch (error) {
+    console.warn("Failed to load user profile from cloud", error);
+    return cached || normalizeUserProfile();
+  }
+}
+
+async function getAdminStats() {
+  if (!canUseCloud()) {
+    const workouts = getList(KEYS.workouts);
+    const meals = getList(KEYS.meals);
+    const exercises = getList(KEYS.exercises);
+    return {
+      exercises: exercises.length,
+      meals: meals.length,
+      workouts: workouts.length,
+      users: 0
+    };
+  }
+
+  async function count(collection) {
+    try {
+      const result = await db().collection(collection).count();
+      return result.total || 0;
+    } catch (error) {
+      console.warn(`Failed to count ${collection}`, error);
+      return 0;
+    }
+  }
+
+  const [exercises, meals, workouts, users] = await Promise.all([
+    count(COLLECTIONS.exercises),
+    count(COLLECTIONS.meals),
+    count(COLLECTIONS.workouts),
+    count(COLLECTIONS.users)
+  ]);
+
+  return { exercises, meals, workouts, users };
 }
 
 async function getExercises(options = {}) {
@@ -358,6 +436,8 @@ module.exports = {
   getExercises,
   getWorkouts,
   getMeals,
+  getUserProfile,
+  getAdminStats,
   addWorkout,
   addMeal,
   removeWorkout,

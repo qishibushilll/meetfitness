@@ -1,0 +1,53 @@
+<view class="page">
+  <view class="section">
+    <view class="title">数据库维护</view>
+    <view class="subtitle">管理员入口</view>
+  </view>
+
+  <view wx:if="{{isUserOnly}}" class="panel empty">当前账号不是管理员</view>
+
+  <view wx:else>
+    <view class="section panel">
+      <view class="metric-grid admin-metrics">
+        <view class="metric">
+          <view class="metric-value">{{stats.exercises}}</view>
+          <view class="metric-label">动作</view>
+        </view>
+        <view class="metric">
+          <view class="metric-value">{{stats.meals}}</view>
+          <view class="metric-label">饮食</view>
+        </view>
+        <view class="metric">
+          <view class="metric-value">{{stats.workouts}}</view>
+          <view class="metric-label">训练</view>
+        </view>
+        <view class="metric">
+          <view class="metric-value">{{stats.users}}</view>
+          <view class="metric-label">用户</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">维护模块</view>
+      <view class="list">
+        <view class="list-item">
+          <view class="item-title">动作库 exercises</view>
+          <view class="item-meta">维护动作名称、中文字段、肌群、器械和图片</view>
+        </view>
+        <view class="list-item">
+          <view class="item-title">饮食记录 meals</view>
+          <view class="item-meta">查看和修正用户饮食数据</view>
+        </view>
+        <view class="list-item">
+          <view class="item-title">训练记录 workouts</view>
+          <view class="item-meta">查看和修正用户训练数据</view>
+        </view>
+        <view class="list-item">
+          <view class="item-title">用户 users</view>
+          <view class="item-meta">维护用户角色，role 为 admin 时显示管理员入口</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
