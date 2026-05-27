@@ -13,38 +13,50 @@ function defaultForm() {
 
 Page({
   data: {
-    exercises: [],
-    exerciseNames: [],
-    exerciseIndex: 0,
-    selectedExerciseName: "",
+    selectedExercise: null,
+    selectedExerciseName: "选择动作",
+    selectedExerciseMeta: "从动作库中选择",
     form: defaultForm(),
     selectedDateWorkouts: []
   },
 
-  onShow() {
-    const exercises = store.getExercises();
-    const exerciseNames = exercises.map((item) => `${item.name} · ${item.muscle}`);
+  async onShow() {
+    const selectedExercise = wx.getStorageSync("fitness.selectedExercise");
+    if (selectedExercise) {
+      this.setSelectedExercise(selectedExercise);
+    } else if (!this.data.selectedExercise) {
+      const exercises = await store.getExercises({ limit: 1 });
+      this.setSelectedExercise(exercises[0] || null);
+    }
+
+    await this.refreshWorkouts(this.data.form.date);
+  },
+
+  setSelectedExercise(exercise) {
     this.setData({
-      exercises,
-      exerciseNames,
-      selectedExerciseName: exerciseNames[this.data.exerciseIndex] || "",
-      selectedDateWorkouts: store.byDate(this.data.form.date).workouts
+      selectedExercise: exercise,
+      selectedExerciseName: exercise ? exercise.name : "选择动作",
+      selectedExerciseMeta: exercise ? `${exercise.muscle} · ${exercise.equipment}` : "从动作库中选择"
     });
   },
 
-  onDateChange(event) {
+  async refreshWorkouts(date) {
+    const day = await store.byDate(date);
     this.setData({
-      "form.date": event.detail.value,
-      selectedDateWorkouts: store.byDate(event.detail.value).workouts
+      selectedDateWorkouts: day.workouts
     });
   },
 
-  onExerciseChange(event) {
-    const exerciseIndex = Number(event.detail.value);
+  async onDateChange(event) {
+    const date = event.detail.value;
     this.setData({
-      exerciseIndex,
-      selectedExerciseName: this.data.exerciseNames[exerciseIndex]
+      "form.date": date
     });
+    await this.refreshWorkouts(date);
+  },
+
+  chooseExercise() {
+    wx.navigateTo({ url: "/pages/exercise-select/exercise-select" });
   },
 
   onInput(event) {
@@ -54,35 +66,34 @@ Page({
     });
   },
 
-  saveWorkout() {
-    const exercise = this.data.exercises[this.data.exerciseIndex];
+  async saveWorkout() {
+    const exercise = this.data.selectedExercise;
     const { sets, reps } = this.data.form;
 
     if (!exercise || !sets || !reps) {
-      wx.showToast({ title: "请补全动作、组数和次数", icon: "none" });
+      wx.showToast({ title: "请先选择动作并填写组数次数", icon: "none" });
       return;
     }
 
-    store.addWorkout({
+    await store.addWorkout({
       ...this.data.form,
-      exerciseId: exercise.id,
-      exerciseName: exercise.name
+      exerciseId: exercise.exerciseId || exercise.id,
+      exerciseName: exercise.name,
+      exerciseImageUrl: exercise.imageUrl
     });
 
     this.setData({
       form: {
         ...defaultForm(),
         date: this.data.form.date
-      },
-      selectedDateWorkouts: store.byDate(this.data.form.date).workouts
+      }
     });
+    await this.refreshWorkouts(this.data.form.date);
     wx.showToast({ title: "已保存", icon: "success" });
   },
 
-  removeWorkout(event) {
-    store.removeWorkout(event.currentTarget.dataset.id);
-    this.setData({
-      selectedDateWorkouts: store.byDate(this.data.form.date).workouts
-    });
+  async removeWorkout(event) {
+    await store.removeWorkout(event.currentTarget.dataset.id);
+    await this.refreshWorkouts(this.data.form.date);
   }
 });

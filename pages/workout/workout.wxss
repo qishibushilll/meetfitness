@@ -8,3 +8,61 @@
   font-size: 24rpx;
   line-height: 60rpx;
 }
+
+.exercise-picker {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  min-height: 150rpx;
+  border: 1rpx solid #d8dee3;
+  border-radius: 10rpx;
+  padding: 16rpx;
+  background: #ffffff;
+}
+
+.exercise-picker-image,
+.workout-thumb {
+  flex: 0 0 112rpx;
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 10rpx;
+  background: #eef2f4;
+}
+
+.exercise-picker-empty {
+  flex: 0 0 112rpx;
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 10rpx;
+  background: #eef5f3;
+  color: #0f7b6c;
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 112rpx;
+  text-align: center;
+}
+
+.exercise-picker-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.exercise-picker-action {
+  flex: 0 0 72rpx;
+  color: #0f7b6c;
+  font-size: 24rpx;
+  text-align: right;
+}
+
+.workout-item-main {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  min-width: 0;
+}
+
+.workout-thumb {
+  flex-basis: 82rpx;
+  width: 82rpx;
+  height: 82rpx;
+}

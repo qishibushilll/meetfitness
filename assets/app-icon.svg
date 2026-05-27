@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Fitness mini program icon</title>
+  <desc id="desc">A rounded square fitness and nutrition app icon with a dumbbell, leaf, and progress pulse.</desc>
+  <defs>
+    <linearGradient id="bg" x1="150" y1="70" x2="874" y2="954" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#16a085"/>
+      <stop offset="0.5" stop-color="#0f7b6c"/>
+      <stop offset="1" stop-color="#0b3f43"/>
+    </linearGradient>
+    <linearGradient id="plate" x1="242" y1="238" x2="790" y2="812" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dff4ef"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="238" y1="338" x2="794" y2="586" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0b3f43"/>
+      <stop offset="1" stop-color="#101418"/>
+    </linearGradient>
+    <filter id="shadow" x="-12%" y="-12%" width="124%" height="130%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="28" stdDeviation="32" flood-color="#062c2f" flood-opacity="0.28"/>
+    </filter>
+    <filter id="softShadow" x="-25%" y="-25%" width="150%" height="160%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#062c2f" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+
+  <g>
+    <rect width="1024" height="1024" fill="url(#bg)"/>
+    <circle cx="210" cy="168" r="206" fill="#52d6b5" opacity="0.28"/>
+    <circle cx="870" cy="868" r="260" fill="#082e35" opacity="0.28"/>
+    <path d="M120 692c126-70 227-87 329-51 83 29 158 25 245-21 69-36 135-52 210-49v453H120z" fill="#073239" opacity="0.22"/>
+
+    <circle cx="512" cy="512" r="320" fill="url(#plate)" filter="url(#shadow)"/>
+    <circle cx="512" cy="512" r="254" fill="none" stroke="#bfe8dd" stroke-width="28" opacity="0.9"/>
+
+    <g filter="url(#softShadow)">
+      <rect x="250" y="404" width="524" height="76" rx="38" transform="rotate(-15 512 442)" fill="url(#bar)"/>
+      <rect x="200" y="360" width="74" height="164" rx="31" transform="rotate(-15 237 442)" fill="#101418"/>
+      <rect x="142" y="378" width="66" height="128" rx="28" transform="rotate(-15 175 442)" fill="#17343a"/>
+      <rect x="750" y="360" width="74" height="164" rx="31" transform="rotate(-15 787 442)" fill="#101418"/>
+      <rect x="816" y="378" width="66" height="128" rx="28" transform="rotate(-15 849 442)" fill="#17343a"/>
+    </g>
+
+    <path d="M288 621h103l47-85 69 165 68-130 53 50h108" fill="none" stroke="#f3b13f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <g filter="url(#softShadow)">
+      <path d="M623 659c-9-86 42-166 129-194 62 85 47 189-28 245-36 27-74 36-101 33z" fill="#4fc184"/>
+      <path d="M632 725c40-85 83-140 128-191" fill="none" stroke="#e4fff0" stroke-width="27" stroke-linecap="round"/>
+      <path d="M326 690c34-41 85-55 147-42-11 63-58 101-116 95-26-3-48-21-31-53z" fill="#8bd35d"/>
+    </g>
+  </g>
+</svg>

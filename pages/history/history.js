@@ -3,14 +3,17 @@ const { displayDate } = require("../../utils/date");
 
 Page({
   data: {
+    loading: false,
     history: []
   },
 
-  onShow() {
-    const history = store.summarizeHistory().map((item) => ({
+  async onShow() {
+    this.setData({ loading: true });
+    const summary = await store.summarizeHistory();
+    const history = summary.map((item) => ({
       ...item,
       displayDate: displayDate(item.date)
     }));
-    this.setData({ history });
+    this.setData({ history, loading: false });
   }
 });

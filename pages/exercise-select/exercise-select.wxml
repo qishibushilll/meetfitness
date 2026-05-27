@@ -1,0 +1,39 @@
+<view class="page">
+  <view class="section">
+    <view class="title">选择动作</view>
+    <view class="subtitle">来自云端动作库，点击图片选择</view>
+  </view>
+
+  <view class="section panel">
+    <input
+      class="input"
+      value="{{keyword}}"
+      placeholder="搜索动作、肌群或器械"
+      bindinput="onKeywordInput"
+      confirm-type="search"
+      bindconfirm="searchExercises"
+    />
+    <button class="secondary-button search-button" bindtap="searchExercises">搜索</button>
+  </view>
+
+  <view wx:if="{{loading}}" class="panel empty">正在加载动作库</view>
+
+  <view wx:elif="{{exercises.length}}" class="exercise-grid">
+    <view
+      wx:for="{{exercises}}"
+      wx:key="exerciseId"
+      class="exercise-card"
+      data-index="{{index}}"
+      bindtap="selectExercise"
+    >
+      <image class="exercise-image" src="{{item.imageUrl}}" mode="aspectFill" />
+      <view class="exercise-card-body">
+        <view class="exercise-name">{{item.name}}</view>
+        <view class="exercise-meta">{{item.muscle}}</view>
+        <view class="exercise-meta">{{item.equipment}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="panel empty">没有找到动作</view>
+</view>

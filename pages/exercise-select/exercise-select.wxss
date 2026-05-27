@@ -1,0 +1,42 @@
+.search-button {
+  margin-top: 18rpx;
+}
+
+.exercise-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18rpx;
+}
+
+.exercise-card {
+  overflow: hidden;
+  min-height: 340rpx;
+  background: #ffffff;
+  border: 1rpx solid #e5e9ec;
+  border-radius: 12rpx;
+}
+
+.exercise-image {
+  display: block;
+  width: 100%;
+  height: 220rpx;
+  background: #eef2f4;
+}
+
+.exercise-card-body {
+  padding: 18rpx;
+}
+
+.exercise-name {
+  color: #1f272e;
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.exercise-meta {
+  margin-top: 8rpx;
+  color: #68717a;
+  font-size: 23rpx;
+  line-height: 1.3;
+}

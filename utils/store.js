@@ -6,15 +6,50 @@ const KEYS = {
   exercises: "fitness.exercises"
 };
 
+const COLLECTIONS = {
+  workouts: "workouts",
+  meals: "meals",
+  exercises: "exercises"
+};
+
 const DEFAULT_EXERCISES = [
-  { id: "bench_press", name: "杠铃卧推", muscle: "胸", equipment: "杠铃" },
-  { id: "squat", name: "深蹲", muscle: "腿", equipment: "杠铃" },
-  { id: "deadlift", name: "硬拉", muscle: "背/腿", equipment: "杠铃" },
-  { id: "pull_up", name: "引体向上", muscle: "背", equipment: "自重" },
-  { id: "shoulder_press", name: "肩推", muscle: "肩", equipment: "哑铃" },
-  { id: "row", name: "俯身划船", muscle: "背", equipment: "杠铃" },
-  { id: "plank", name: "平板支撑", muscle: "核心", equipment: "自重" }
+  {
+    id: "bench_press",
+    name: "杠铃卧推",
+    muscle: "胸",
+    equipment: "杠铃",
+    imageUrl: "/assets/app-icon-256.png"
+  },
+  {
+    id: "squat",
+    name: "深蹲",
+    muscle: "腿",
+    equipment: "杠铃",
+    imageUrl: "/assets/app-icon-256.png"
+  },
+  {
+    id: "deadlift",
+    name: "硬拉",
+    muscle: "背/腿",
+    equipment: "杠铃",
+    imageUrl: "/assets/app-icon-256.png"
+  },
+  {
+    id: "pull_up",
+    name: "引体向上",
+    muscle: "背",
+    equipment: "自重",
+    imageUrl: "/assets/app-icon-256.png"
+  }
 ];
+
+function canUseCloud() {
+  return Boolean(wx.cloud && wx.cloud.database);
+}
+
+function db() {
+  return wx.cloud.database();
+}
 
 function getList(key) {
   return wx.getStorageSync(key) || [];
@@ -30,39 +65,138 @@ function ensureSeedData() {
   }
 }
 
-function getExercises() {
+function normalizeExercise(item) {
+  const imageUrl = item.imageUrl || item.image || item.thumbnail || "/assets/app-icon-256.png";
+  const muscle = item.muscle || item.primaryMusclesText || (item.primaryMuscles || []).join("/") || "未分类";
+  const equipment = item.equipment || item.equipmentText || "未知器械";
+
+  return {
+    ...item,
+    id: item.exerciseId || item.id || item._id,
+    exerciseId: item.exerciseId || item.id || item._id,
+    name: item.name || item.title || "未命名动作",
+    muscle,
+    equipment,
+    imageUrl
+  };
+}
+
+function normalizeWorkout(item) {
+  return {
+    ...item,
+    id: item.id || item._id,
+    sets: Number(item.sets) || 0,
+    reps: Number(item.reps) || 0,
+    weight: Number(item.weight) || 0
+  };
+}
+
+function normalizeMeal(item) {
+  return {
+    ...item,
+    id: item.id || item._id,
+    calories: Number(item.calories) || 0,
+    protein: Number(item.protein) || 0
+  };
+}
+
+async function getExercises(options = {}) {
   ensureSeedData();
-  return getList(KEYS.exercises);
+
+  if (!canUseCloud()) {
+    return getList(KEYS.exercises).map(normalizeExercise);
+  }
+
+  const limit = options.limit || 100;
+  const keyword = (options.keyword || "").trim();
+
+  try {
+    const result = await wx.cloud.callFunction({
+      name: "exerciseApi",
+      data: {
+        action: keyword ? "search" : "list",
+        keyword,
+        limit
+      }
+    });
+    const data = (result.result.data || []).map(normalizeExercise);
+    if (data.length) {
+      setList(KEYS.exercises, data);
+      return data;
+    }
+  } catch (error) {
+    console.warn("Failed to load exercises from cloud", error);
+  }
+
+  return getList(KEYS.exercises).map(normalizeExercise);
 }
 
-function getWorkouts() {
-  return getList(KEYS.workouts);
+async function getWorkouts() {
+  if (!canUseCloud()) {
+    return getList(KEYS.workouts).map(normalizeWorkout);
+  }
+
+  try {
+    const result = await db()
+      .collection(COLLECTIONS.workouts)
+      .orderBy("createdAt", "desc")
+      .limit(200)
+      .get();
+    return result.data.map(normalizeWorkout);
+  } catch (error) {
+    console.warn("Failed to load workouts from cloud", error);
+    return getList(KEYS.workouts).map(normalizeWorkout);
+  }
 }
 
-function getMeals() {
-  return getList(KEYS.meals);
+async function getMeals() {
+  if (!canUseCloud()) {
+    return getList(KEYS.meals).map(normalizeMeal);
+  }
+
+  try {
+    const result = await db()
+      .collection(COLLECTIONS.meals)
+      .orderBy("createdAt", "desc")
+      .limit(200)
+      .get();
+    return result.data.map(normalizeMeal);
+  } catch (error) {
+    console.warn("Failed to load meals from cloud", error);
+    return getList(KEYS.meals).map(normalizeMeal);
+  }
 }
 
-function addWorkout(payload) {
-  const workouts = getWorkouts();
+async function addWorkout(payload) {
   const record = {
     id: `w_${Date.now()}`,
     date: payload.date || formatDate(),
     exerciseId: payload.exerciseId,
     exerciseName: payload.exerciseName,
+    exerciseImageUrl: payload.exerciseImageUrl || "",
     sets: Number(payload.sets) || 0,
     reps: Number(payload.reps) || 0,
     weight: Number(payload.weight) || 0,
     note: payload.note || "",
     createdAt: Date.now()
   };
+
+  if (canUseCloud()) {
+    try {
+      await db().collection(COLLECTIONS.workouts).add({ data: record });
+      return record;
+    } catch (error) {
+      console.warn("Failed to save workout to cloud", error);
+    }
+  }
+
+  const workouts = getList(KEYS.workouts);
   workouts.unshift(record);
   setList(KEYS.workouts, workouts);
   return record;
 }
 
-function addMeal(payload) {
-  const meals = getMeals();
+async function addMeal(payload) {
   const record = {
     id: `m_${Date.now()}`,
     date: payload.date || formatDate(),
@@ -73,28 +207,90 @@ function addMeal(payload) {
     note: payload.note || "",
     createdAt: Date.now()
   };
+
+  if (canUseCloud()) {
+    try {
+      await db().collection(COLLECTIONS.meals).add({ data: record });
+      return record;
+    } catch (error) {
+      console.warn("Failed to save meal to cloud", error);
+    }
+  }
+
+  const meals = getList(KEYS.meals);
   meals.unshift(record);
   setList(KEYS.meals, meals);
   return record;
 }
 
-function removeWorkout(id) {
-  setList(KEYS.workouts, getWorkouts().filter((item) => item.id !== id));
+async function removeWorkout(id) {
+  if (canUseCloud()) {
+    try {
+      if (String(id).startsWith("w_")) {
+        const result = await db().collection(COLLECTIONS.workouts).where({ id }).limit(1).get();
+        if (result.data.length) {
+          await db().collection(COLLECTIONS.workouts).doc(result.data[0]._id).remove();
+        }
+      } else {
+        await db().collection(COLLECTIONS.workouts).doc(id).remove();
+      }
+      return;
+    } catch (error) {
+      console.warn("Failed to remove workout from cloud", error);
+    }
+  }
+
+  setList(KEYS.workouts, getList(KEYS.workouts).filter((item) => item.id !== id && item._id !== id));
 }
 
-function removeMeal(id) {
-  setList(KEYS.meals, getMeals().filter((item) => item.id !== id));
+async function removeMeal(id) {
+  if (canUseCloud()) {
+    try {
+      if (String(id).startsWith("m_")) {
+        const result = await db().collection(COLLECTIONS.meals).where({ id }).limit(1).get();
+        if (result.data.length) {
+          await db().collection(COLLECTIONS.meals).doc(result.data[0]._id).remove();
+        }
+      } else {
+        await db().collection(COLLECTIONS.meals).doc(id).remove();
+      }
+      return;
+    } catch (error) {
+      console.warn("Failed to remove meal from cloud", error);
+    }
+  }
+
+  setList(KEYS.meals, getList(KEYS.meals).filter((item) => item.id !== id && item._id !== id));
 }
 
-function byDate(date) {
-  return {
-    workouts: getWorkouts().filter((item) => item.date === date),
-    meals: getMeals().filter((item) => item.date === date)
-  };
+async function byDate(date) {
+  if (!canUseCloud()) {
+    return {
+      workouts: getList(KEYS.workouts).filter((item) => item.date === date).map(normalizeWorkout),
+      meals: getList(KEYS.meals).filter((item) => item.date === date).map(normalizeMeal)
+    };
+  }
+
+  try {
+    const [workoutResult, mealResult] = await Promise.all([
+      db().collection(COLLECTIONS.workouts).where({ date }).orderBy("createdAt", "desc").get(),
+      db().collection(COLLECTIONS.meals).where({ date }).orderBy("createdAt", "desc").get()
+    ]);
+
+    return {
+      workouts: workoutResult.data.map(normalizeWorkout),
+      meals: mealResult.data.map(normalizeMeal)
+    };
+  } catch (error) {
+    console.warn("Failed to load day records from cloud", error);
+    return {
+      workouts: getList(KEYS.workouts).filter((item) => item.date === date).map(normalizeWorkout),
+      meals: getList(KEYS.meals).filter((item) => item.date === date).map(normalizeMeal)
+    };
+  }
 }
 
-function summarizeDay(date) {
-  const day = byDate(date);
+function summarizeRecords(date, day) {
   const workoutSets = day.workouts.reduce((sum, item) => sum + item.sets, 0);
   const workoutVolume = day.workouts.reduce((sum, item) => sum + item.sets * item.reps * item.weight, 0);
   const calories = day.meals.reduce((sum, item) => sum + item.calories, 0);
@@ -113,14 +309,25 @@ function summarizeDay(date) {
   };
 }
 
-function summarizeHistory() {
+async function summarizeDay(date) {
+  const day = await byDate(date);
+  return summarizeRecords(date, day);
+}
+
+async function summarizeHistory() {
+  const [workouts, meals] = await Promise.all([getWorkouts(), getMeals()]);
   const dates = new Set();
-  getWorkouts().forEach((item) => dates.add(item.date));
-  getMeals().forEach((item) => dates.add(item.date));
+  workouts.forEach((item) => dates.add(item.date));
+  meals.forEach((item) => dates.add(item.date));
 
   return Array.from(dates)
     .sort((a, b) => (a < b ? 1 : -1))
-    .map((date) => summarizeDay(date));
+    .map((date) =>
+      summarizeRecords(date, {
+        workouts: workouts.filter((item) => item.date === date),
+        meals: meals.filter((item) => item.date === date)
+      })
+    );
 }
 
 module.exports = {
@@ -134,5 +341,6 @@ module.exports = {
   removeMeal,
   byDate,
   summarizeDay,
-  summarizeHistory
+  summarizeHistory,
+  normalizeExercise
 };

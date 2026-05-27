@@ -22,17 +22,23 @@ Page({
     selectedDateMeals: []
   },
 
-  onShow() {
+  async onShow() {
+    await this.refreshMeals(this.data.form.date);
+  },
+
+  async refreshMeals(date) {
+    const day = await store.byDate(date);
     this.setData({
-      selectedDateMeals: store.byDate(this.data.form.date).meals
+      selectedDateMeals: day.meals
     });
   },
 
-  onDateChange(event) {
+  async onDateChange(event) {
+    const date = event.detail.value;
     this.setData({
-      "form.date": event.detail.value,
-      selectedDateMeals: store.byDate(event.detail.value).meals
+      "form.date": date
     });
+    await this.refreshMeals(date);
   },
 
   onMealTypeChange(event) {
@@ -50,13 +56,13 @@ Page({
     });
   },
 
-  saveMeal() {
+  async saveMeal() {
     if (!this.data.form.food) {
       wx.showToast({ title: "请填写食物", icon: "none" });
       return;
     }
 
-    store.addMeal({
+    await store.addMeal({
       ...this.data.form,
       type: this.data.mealTypes[this.data.mealTypeIndex]
     });
@@ -65,16 +71,14 @@ Page({
       form: {
         ...defaultForm(),
         date: this.data.form.date
-      },
-      selectedDateMeals: store.byDate(this.data.form.date).meals
+      }
     });
+    await this.refreshMeals(this.data.form.date);
     wx.showToast({ title: "已保存", icon: "success" });
   },
 
-  removeMeal(event) {
-    store.removeMeal(event.currentTarget.dataset.id);
-    this.setData({
-      selectedDateMeals: store.byDate(this.data.form.date).meals
-    });
+  async removeMeal(event) {
+    await store.removeMeal(event.currentTarget.dataset.id);
+    await this.refreshMeals(this.data.form.date);
   }
 });

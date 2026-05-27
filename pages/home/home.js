@@ -5,6 +5,7 @@ Page({
   data: {
     date: formatDate(),
     displayDate: "",
+    loading: false,
     summary: {
       workouts: [],
       meals: [],
@@ -14,12 +15,20 @@ Page({
     }
   },
 
-  onShow() {
+  async onShow() {
     const date = formatDate();
     this.setData({
       date,
       displayDate: displayDate(date),
-      summary: store.summarizeDay(date)
+      loading: true
+    });
+
+    const summary = await store.summarizeDay(date);
+    this.setData({
+      date,
+      displayDate: displayDate(date),
+      summary,
+      loading: false
     });
   },
 
