@@ -122,6 +122,7 @@ function normalizeUserProfile(item = {}) {
     openid: item._openid || item.openid || "",
     nickName: item.nickName || "",
     avatarUrl: item.avatarUrl || "",
+    avatarFileId: item.avatarFileId || "",
     gender: item.gender || "",
     role: item.role === "admin" ? "admin" : "user",
     registered: Boolean(item.registered),

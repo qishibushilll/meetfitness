@@ -6,9 +6,12 @@
 
   <view class="section panel">
     <view class="row-between">
-      <view>
-        <view class="profile-name">{{displayName}}</view>
-        <view class="item-meta">{{roleText}}</view>
+      <view class="profile-head">
+        <image class="avatar" src="{{avatarDisplayUrl}}" mode="aspectFill" />
+        <view>
+          <view class="profile-name">{{displayName}}</view>
+          <view class="item-meta">{{roleText}}</view>
+        </view>
       </view>
       <view class="role-badge">{{roleBadge}}</view>
     </view>
@@ -16,6 +19,13 @@
 
   <view wx:if="{{isUnregistered}}" class="section panel">
     <view class="section-title">注册</view>
+    <view class="form-item">
+      <text class="label">头像</text>
+      <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image class="avatar-form" src="{{avatarDisplayUrl}}" mode="aspectFill" />
+        <text>选择头像</text>
+      </button>
+    </view>
     <view class="form-item">
       <text class="label">昵称</text>
       <input class="input" value="{{form.nickName}}" placeholder="请输入昵称" bindinput="onNicknameInput" />
@@ -25,6 +35,13 @@
 
   <view wx:else class="section panel">
     <view class="section-title">资料</view>
+    <view class="form-item">
+      <text class="label">头像</text>
+      <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image class="avatar-form" src="{{avatarDisplayUrl}}" mode="aspectFill" />
+        <text>更换头像</text>
+      </button>
+    </view>
     <view class="form-item">
       <text class="label">昵称</text>
       <input class="input" value="{{form.nickName}}" placeholder="请输入昵称" bindinput="onNicknameInput" />

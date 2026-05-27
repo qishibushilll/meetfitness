@@ -33,6 +33,7 @@ function normalizeUser(user, openid) {
     openid,
     nickName: user.nickName || "",
     avatarUrl: user.avatarUrl || "",
+    avatarFileId: user.avatarFileId || "",
     gender: user.gender || "",
     role: user.role === "admin" ? "admin" : "user",
     registered: Boolean(user.registered),
@@ -52,6 +53,7 @@ async function getOrCreateUser(openid) {
   const data = {
     nickName: "",
     avatarUrl: "",
+    avatarFileId: "",
     gender: "",
     role: "user",
     registered: false,
@@ -69,6 +71,7 @@ async function updateProfile(openid, payload) {
   const data = {
     nickName: String(payload.nickName || "").trim(),
     avatarUrl: payload.avatarUrl || "",
+    avatarFileId: payload.avatarFileId || "",
     gender: payload.gender || "",
     registered: true,
     updatedAt: Date.now()

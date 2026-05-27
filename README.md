@@ -132,6 +132,7 @@ seed 动作会同时写入中文字段，例如 `nameZh`、`muscleZh`、`equipme
 ```
 
 用户填写昵称后，`registered` 会变为 `true`。
+头像通过“我的”页的微信头像选择能力获取，并上传到云存储 `user-avatars/` 目录；`users` 记录会保存 `avatarFileId` 和 `avatarUrl`。
 
 要让某个账号看到管理员入口，在云开发数据库 `users` 集合中把该用户记录改成：
 
