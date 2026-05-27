@@ -63,6 +63,25 @@ seed 动作会同时写入中文字段，例如 `nameZh`、`muscleZh`、`equipme
 
 如果远程模式仍然 3 秒超时，就先使用默认 seed 模式；完整动作库可以后续通过本地脚本或云函数更长超时配置导入。
 
+## 完整动作库导入
+
+完整导入不要使用云函数运行时访问 GitHub，容易被 3 秒测试超时卡住。推荐做法：
+
+1. 下载 `yuhonas/free-exercise-db` 的 `dist/exercises.json`
+2. 放到 `cloudfunctions/importExercises/data/exercises.json`
+3. 重新部署 `cloudfunctions/importExercises`
+4. 分批运行：
+
+```json
+{
+  "limit": 50,
+  "offset": 0,
+  "uploadImages": false
+}
+```
+
+然后依次改 `offset` 为 `50`、`100`、`150`，直到返回的 `imported` 小于 `limit`。如果 `data/exercises.json` 不存在或文件损坏，云函数会自动回退到内置 seed 动作，返回里的 `mode` 会显示 `seed`；完整文件生效时 `mode` 会显示 `local`。
+
 如果页面能看到动作名称但图片是灰色，说明动作数据已经导入成功，但图片 URL 加载失败。先确认已经重新部署 `importExercises` 并用下面参数刷新过图片 URL：
 
 ```json

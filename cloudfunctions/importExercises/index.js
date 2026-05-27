@@ -1,5 +1,7 @@
 const cloud = require("wx-server-sdk");
 const https = require("https");
+const fs = require("fs");
+const path = require("path");
 const seedExercises = require("./seed");
 const zhMap = require("./zhMap");
 
@@ -13,6 +15,7 @@ const DATA_URL =
   "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json";
 const IMAGE_BASE =
   "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises";
+const LOCAL_DATA_PATH = path.join(__dirname, "data", "exercises.json");
 
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
@@ -39,6 +42,21 @@ function fetchJson(url) {
       })
       .on("error", reject);
   });
+}
+
+function readLocalExercises() {
+  if (!fs.existsSync(LOCAL_DATA_PATH)) {
+    return null;
+  }
+
+  try {
+    const content = fs.readFileSync(LOCAL_DATA_PATH, "utf8");
+    const data = JSON.parse(content);
+    return Array.isArray(data) ? data : data.exercises || null;
+  } catch (error) {
+    console.warn("Local exercises.json is not valid, falling back to seed data", error);
+    return null;
+  }
 }
 
 function fetchBuffer(url) {
@@ -171,8 +189,10 @@ exports.main = async (event = {}) => {
   const offset = event.offset ? Number(event.offset) : 0;
   const uploadImages = Boolean(event.uploadImages);
   const useRemote = Boolean(event.useRemote || event.url);
-  const raw = useRemote ? await fetchJson(event.url || DATA_URL) : seedExercises;
+  const localExercises = useRemote ? null : readLocalExercises();
+  const raw = useRemote ? await fetchJson(event.url || DATA_URL) : localExercises || seedExercises;
   const items = Array.isArray(raw) ? raw : raw.exercises || [];
+  const mode = useRemote ? "remote" : localExercises ? "local" : "seed";
   const selected = limit > 0 ? items.slice(offset, offset + limit) : items.slice(offset);
 
   let created = 0;
@@ -195,7 +215,7 @@ exports.main = async (event = {}) => {
 
   return {
     source: event.url || DATA_URL,
-    mode: useRemote ? "remote" : "seed",
+    mode,
     total: items.length,
     offset,
     imported: selected.length,
