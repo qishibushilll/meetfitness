@@ -44,7 +44,9 @@
 }
 ```
 
-生产环境建议把动作图片也上传到云存储，避免小程序线上环境受 GitHub 图片域名限制：
+开发阶段先不要上传图片，使用 `uploadImages: false` 写入 GitHub 原图 URL。微信开发者工具里需要关闭合法域名校验，或者在详情/本地设置里勾选“不校验合法域名、web-view、TLS 版本以及 HTTPS 证书”。
+
+生产环境建议再把动作图片上传到云存储，避免小程序线上环境受 GitHub 图片域名限制：
 
 ```json
 {
@@ -54,23 +56,23 @@
 }
 ```
 
-如果完整导入图片，可以分批执行，例如 `offset` 分别为 `0`、`10`、`20`。`exerciseApi` 会把云存储 `fileID` 转成临时 URL 返回给小程序页面展示。
+云函数测试页常见 3 秒超时，不适合直接用 `uploadImages: true` 从 GitHub 下载并上传图片。如果需要云存储图片，后续应使用本地脚本或更长超时的云端执行入口批量上传。`exerciseApi` 已支持把云存储 `fileID` 转成临时 URL 返回给小程序页面展示。
 
-如果云函数测试页显示 `Invoking task timed out after 3 seconds`，先用 `uploadImages: false` 导入动作文字数据；图片上传再用小批量 `limit: 3` 到 `limit: 5` 分批执行。
+如果云函数测试页显示 `Invoking task timed out after 3 seconds`，请改用 `uploadImages: false`。这一步不会下载图片，只导入动作数据和图片 URL。
 
 如果远程模式仍然 3 秒超时，就先使用默认 seed 模式；完整动作库可以后续通过本地脚本或云函数更长超时配置导入。
 
-如果页面能看到动作名称但图片是灰色，说明动作数据已经导入成功，但图片 URL 加载失败。重新部署 `importExercises` 后，用下面参数把 seed 图片上传到云存储：
+如果页面能看到动作名称但图片是灰色，说明动作数据已经导入成功，但图片 URL 加载失败。先确认已经重新部署 `importExercises` 并用下面参数刷新过图片 URL：
 
 ```json
 {
-  "limit": 3,
+  "limit": 10,
   "offset": 0,
-  "uploadImages": true
+  "uploadImages": false
 }
 ```
 
-再分别用 `offset: 3`、`offset: 6`、`offset: 9` 继续执行。执行后数据库记录里的 `imageFileId` 不再为空，页面会通过 `exerciseApi` 获取云存储临时 URL。
+然后在开发者工具里关闭合法域名校验并重新编译。如果仍然灰色，再检查数据库里的 `imageUrl` 是否为 `https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg` 这种带大写和下划线的路径。
 
 如果动作选择页提示动作库为空，说明小程序没有从云端拿到 `exercises` 数据。先确认：
 

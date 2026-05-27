@@ -31,7 +31,13 @@
       data-index="{{index}}"
       bindtap="selectExercise"
     >
-      <image class="exercise-image" src="{{item.imageUrl}}" mode="aspectFill" />
+      <image
+        class="exercise-image"
+        src="{{item.imageUrl}}"
+        mode="aspectFill"
+        data-url="{{item.imageUrl}}"
+        binderror="onImageError"
+      />
       <view class="exercise-card-body">
         <view class="exercise-name">{{item.name}}</view>
         <view class="exercise-meta">{{item.muscle}}</view>

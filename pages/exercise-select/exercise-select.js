@@ -49,5 +49,9 @@ Page({
     const exercise = this.data.exercises[event.currentTarget.dataset.index];
     wx.setStorageSync("fitness.selectedExercise", exercise);
     wx.navigateBack();
+  },
+
+  onImageError(event) {
+    console.warn("Exercise image failed to load", event.currentTarget.dataset.url);
   }
 });
