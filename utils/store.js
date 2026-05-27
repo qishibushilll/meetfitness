@@ -67,14 +67,17 @@ function ensureSeedData() {
 
 function normalizeExercise(item) {
   const imageUrl = item.imageUrl || item.image || item.thumbnail || "/assets/app-icon-256.png";
-  const muscle = item.muscle || item.primaryMusclesText || (item.primaryMuscles || []).join("/") || "未分类";
-  const equipment = item.equipment || item.equipmentText || "未知器械";
+  const name = item.displayName || item.nameZh || item.name || item.title || "未命名动作";
+  const nameEn = item.name || item.title || "";
+  const muscle = item.muscleZh || item.muscle || item.primaryMusclesText || (item.primaryMuscles || []).join("/") || "未分类";
+  const equipment = item.equipmentZh || item.equipment || item.equipmentText || "未知器械";
 
   return {
     ...item,
     id: item.exerciseId || item.id || item._id,
     exerciseId: item.exerciseId || item.id || item._id,
-    name: item.name || item.title || "未命名动作",
+    name,
+    nameEn,
     muscle,
     equipment,
     imageUrl
@@ -181,6 +184,7 @@ async function addWorkout(payload) {
     date: payload.date || formatDate(),
     exerciseId: payload.exerciseId,
     exerciseName: payload.exerciseName,
+    exerciseNameEn: payload.exerciseNameEn || "",
     exerciseImageUrl: payload.exerciseImageUrl || "",
     sets: Number(payload.sets) || 0,
     reps: Number(payload.reps) || 0,

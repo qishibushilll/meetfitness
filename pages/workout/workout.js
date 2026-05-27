@@ -83,6 +83,7 @@ Page({
       ...this.data.form,
       exerciseId: exercise.exerciseId || exercise.id,
       exerciseName: exercise.name,
+      exerciseNameEn: exercise.nameEn || "",
       exerciseImageUrl: exercise.imageUrl
     });
 

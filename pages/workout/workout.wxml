@@ -61,6 +61,7 @@
             />
             <view>
               <view class="item-title">{{item.exerciseName}}</view>
+              <view wx:if="{{item.exerciseNameEn}}" class="item-meta">{{item.exerciseNameEn}}</view>
               <view class="item-meta">{{item.sets}} 组 x {{item.reps}} 次 · {{item.weight}} kg</view>
               <view wx:if="{{item.note}}" class="item-meta">{{item.note}}</view>
             </view>

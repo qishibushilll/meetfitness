@@ -56,8 +56,12 @@ exports.main = async (event) => {
       .where(
         _.or([
           { name: matcher },
+          { nameZh: matcher },
+          { displayName: matcher },
           { muscle: matcher },
+          { muscleZh: matcher },
           { equipment: matcher },
+          { equipmentZh: matcher },
           { primaryMusclesText: matcher }
         ])
       )

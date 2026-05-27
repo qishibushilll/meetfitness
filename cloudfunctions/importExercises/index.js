@@ -1,6 +1,7 @@
 const cloud = require("wx-server-sdk");
 const https = require("https");
 const seedExercises = require("./seed");
+const zhMap = require("./zhMap");
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
@@ -121,15 +122,20 @@ async function normalizeExercise(item, options = {}) {
   const secondaryMusclesText = toText(item.secondaryMuscles);
   const imageFileId = options.uploadImages ? await uploadFirstImage(item) : "";
   const rawImageUrl = getImageUrl(item);
+  const zh = zhMap[item.id] || {};
 
   return {
     exerciseId: item.id,
     name: item.name,
+    displayName: zh.nameZh || item.name,
+    nameZh: zh.nameZh || "",
     force: item.force || "",
     level: item.level || "",
     mechanic: item.mechanic || "",
     equipment: item.equipment || "body only",
+    equipmentZh: zh.equipmentZh || "",
     muscle: primaryMusclesText || "other",
+    muscleZh: zh.muscleZh || "",
     primaryMuscles: item.primaryMuscles || [],
     primaryMusclesText,
     secondaryMuscles: item.secondaryMuscles || [],
