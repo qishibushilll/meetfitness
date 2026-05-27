@@ -78,6 +78,17 @@ function getImageUrl(item) {
   return imagePath ? `${IMAGE_BASE}/${imagePath}` : "";
 }
 
+async function ensureCollection(name) {
+  try {
+    await db.createCollection(name);
+  } catch (error) {
+    const message = error && (error.errMsg || error.message || "");
+    if (!message.includes("already exists") && !message.includes("collection exists")) {
+      console.warn(`Failed to create collection ${name}`, error);
+    }
+  }
+}
+
 async function uploadFirstImage(item) {
   const imagePath = getImagePath(item);
   if (!imagePath) {
@@ -138,6 +149,8 @@ async function upsertExercise(item, options) {
 }
 
 exports.main = async (event = {}) => {
+  await ensureCollection(EXERCISES);
+
   const limit = event.limit ? Number(event.limit) : 0;
   const offset = event.offset ? Number(event.offset) : 0;
   const uploadImages = Boolean(event.uploadImages);
