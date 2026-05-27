@@ -25,7 +25,7 @@
 
 ```json
 {
-  "limit": 10,
+  "limit": 5,
   "offset": 0,
   "uploadImages": false
 }
@@ -38,7 +38,7 @@ seed 动作会同时写入中文字段，例如 `nameZh`、`muscleZh`、`equipme
 
 ```json
 {
-  "limit": 10,
+  "limit": 5,
   "offset": 0,
   "uploadImages": false,
   "useRemote": true
@@ -74,13 +74,13 @@ seed 动作会同时写入中文字段，例如 `nameZh`、`muscleZh`、`equipme
 
 ```json
 {
-  "limit": 50,
+  "limit": 5,
   "offset": 0,
   "uploadImages": false
 }
 ```
 
-然后依次改 `offset` 为 `50`、`100`、`150`，直到返回的 `imported` 小于 `limit`。如果 `data/exercises.json` 不存在或文件损坏，云函数会自动回退到内置 seed 动作，返回里的 `mode` 会显示 `seed`；完整文件生效时 `mode` 会显示 `local`。
+然后依次改 `offset` 为 `5`、`10`、`15`，直到返回的 `imported` 小于 `limit`。微信云函数测试入口通常只有 3 秒，完整导入时不要一次导 50 条；先用 `limit: 5`，稳定后再尝试 `limit: 10`。如果 `data/exercises.json` 不存在或文件损坏，云函数会自动回退到内置 seed 动作，返回里的 `mode` 会显示 `seed`；完整文件生效时 `mode` 会显示 `local`。
 
 如果页面能看到动作名称但图片是灰色，说明动作数据已经导入成功，但图片 URL 加载失败。先确认已经重新部署 `importExercises` 并用下面参数刷新过图片 URL：
 

@@ -182,10 +182,56 @@ async function upsertExercise(item, options) {
   return "created";
 }
 
+async function loadExistingByExerciseId(ids) {
+  if (!ids.length) {
+    return {};
+  }
+
+  const result = await db
+    .collection(EXERCISES)
+    .where({
+      exerciseId: db.command.in(ids)
+    })
+    .limit(ids.length)
+    .get();
+
+  return result.data.reduce((map, item) => {
+    map[item.exerciseId] = item._id;
+    return map;
+  }, {});
+}
+
+async function upsertExercises(items, options) {
+  const ids = items.map((item) => item.id).filter(Boolean);
+  const existing = await loadExistingByExerciseId(ids);
+  let created = 0;
+  let updated = 0;
+  let failed = 0;
+
+  for (const item of items) {
+    try {
+      const data = await normalizeExercise(item, options);
+      const docId = existing[data.exerciseId];
+      if (docId) {
+        await db.collection(EXERCISES).doc(docId).update({ data });
+        updated += 1;
+      } else {
+        await db.collection(EXERCISES).add({ data });
+        created += 1;
+      }
+    } catch (error) {
+      failed += 1;
+      console.error(`Failed to import ${item.id}`, error);
+    }
+  }
+
+  return { created, updated, failed };
+}
+
 exports.main = async (event = {}) => {
   await ensureCollection(EXERCISES);
 
-  const limit = event.limit ? Number(event.limit) : 10;
+  const limit = event.limit ? Number(event.limit) : 5;
   const offset = event.offset ? Number(event.offset) : 0;
   const uploadImages = Boolean(event.uploadImages);
   const useRemote = Boolean(event.useRemote || event.url);
@@ -195,23 +241,7 @@ exports.main = async (event = {}) => {
   const mode = useRemote ? "remote" : localExercises ? "local" : "seed";
   const selected = limit > 0 ? items.slice(offset, offset + limit) : items.slice(offset);
 
-  let created = 0;
-  let updated = 0;
-  let failed = 0;
-
-  for (const item of selected) {
-    try {
-      const result = await upsertExercise(item, { uploadImages });
-      if (result === "created") {
-        created += 1;
-      } else {
-        updated += 1;
-      }
-    } catch (error) {
-      failed += 1;
-      console.error(`Failed to import ${item.id}`, error);
-    }
-  }
+  const { created, updated, failed } = await upsertExercises(selected, { uploadImages });
 
   return {
     source: event.url || DATA_URL,
