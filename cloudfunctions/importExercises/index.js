@@ -83,7 +83,16 @@ async function ensureCollection(name) {
     await db.createCollection(name);
   } catch (error) {
     const message = error && (error.errMsg || error.message || "");
-    if (!message.includes("already exists") && !message.includes("collection exists")) {
+    const code = error && error.errCode;
+    const exists =
+      code === -501001 ||
+      message.includes("already exists") ||
+      message.includes("collection exists") ||
+      message.includes("ResourceExist") ||
+      message.includes("Table exist") ||
+      message.includes("DATABASE_COLLECTION_ALREADY_EXIST");
+
+    if (!exists) {
       console.warn(`Failed to create collection ${name}`, error);
     }
   }
@@ -151,7 +160,7 @@ async function upsertExercise(item, options) {
 exports.main = async (event = {}) => {
   await ensureCollection(EXERCISES);
 
-  const limit = event.limit ? Number(event.limit) : 0;
+  const limit = event.limit ? Number(event.limit) : 10;
   const offset = event.offset ? Number(event.offset) : 0;
   const uploadImages = Boolean(event.uploadImages);
   const raw = await fetchJson(event.url || DATA_URL);

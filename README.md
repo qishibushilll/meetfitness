@@ -25,7 +25,9 @@
 
 ```json
 {
-  "limit": 50
+  "limit": 10,
+  "offset": 0,
+  "uploadImages": false
 }
 ```
 
@@ -35,13 +37,15 @@
 
 ```json
 {
-  "limit": 50,
+  "limit": 10,
   "offset": 0,
   "uploadImages": true
 }
 ```
 
-如果完整导入图片，可以分批执行，例如 `offset` 分别为 `0`、`50`、`100`。`exerciseApi` 会把云存储 `fileID` 转成临时 URL 返回给小程序页面展示。
+如果完整导入图片，可以分批执行，例如 `offset` 分别为 `0`、`10`、`20`。`exerciseApi` 会把云存储 `fileID` 转成临时 URL 返回给小程序页面展示。
+
+如果云函数测试页显示 `Invoking task timed out after 3 seconds`，先用 `uploadImages: false` 导入动作文字数据；图片上传再用小批量 `limit: 3` 到 `limit: 5` 分批执行。
 
 如果动作选择页提示动作库为空，说明小程序没有从云端拿到 `exercises` 数据。先确认：
 
