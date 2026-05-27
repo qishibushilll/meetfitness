@@ -34,6 +34,14 @@ const equipmentMap = {
 };
 
 const phraseMap = [
+  ["Arm Circles", "手臂绕环"],
+  ["Arnold Dumbbell Press", "阿诺德哑铃推举"],
+  ["Around The Worlds", "哑铃环绕飞鸟"],
+  ["Atlas Stone Trainer", "阿特拉斯石球训练"],
+  ["Atlas Stones", "阿特拉斯石球"],
+  ["Axle Deadlift", "粗杆硬拉"],
+  ["Back Flyes - With Bands", "弹力带后束飞鸟"],
+  ["Backward Drag", "后向拖拽"],
   ["Incline Dumbbell Bench Press", "上斜哑铃卧推"],
   ["Decline Dumbbell Bench Press", "下斜哑铃卧推"],
   ["Dumbbell Bench Press", "哑铃卧推"],

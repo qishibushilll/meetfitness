@@ -69,7 +69,10 @@ function ensureSeedData() {
 function normalizeExercise(item) {
   const imageUrl = item.imageUrl || item.image || item.thumbnail || "/assets/app-icon-256.png";
   const translated = translateExercise(item);
-  const name = item.displayName || item.nameZh || translated.nameZh || item.name || item.title || "未命名动作";
+  const cloudName = item.nameZh || item.displayName || "";
+  const name = /[\u4e00-\u9fa5]/.test(cloudName)
+    ? cloudName
+    : translated.nameZh || item.name || item.title || "未命名动作";
   const nameEn = item.name || item.title || "";
   const muscle =
     item.muscleZh ||
