@@ -15,7 +15,7 @@ module.exports = [
       "Push the bar back to the starting position."
     ],
     category: "strength",
-    images: ["barbell-bench-press-medium-grip/0.jpg", "barbell-bench-press-medium-grip/1.jpg"]
+    images: ["Barbell_Bench_Press_-_Medium_Grip/0.jpg", "Barbell_Bench_Press_-_Medium_Grip/1.jpg"]
   },
   {
     id: "barbell-full-squat",
@@ -33,7 +33,7 @@ module.exports = [
       "Rise back to the starting position."
     ],
     category: "strength",
-    images: ["barbell-full-squat/0.jpg", "barbell-full-squat/1.jpg"]
+    images: ["Barbell_Full_Squat/0.jpg", "Barbell_Full_Squat/1.jpg"]
   },
   {
     id: "barbell-deadlift",
@@ -51,7 +51,7 @@ module.exports = [
       "Pull the bar up by standing tall."
     ],
     category: "strength",
-    images: ["barbell-deadlift/0.jpg", "barbell-deadlift/1.jpg"]
+    images: ["Barbell_Deadlift/0.jpg", "Barbell_Deadlift/1.jpg"]
   },
   {
     id: "pullups",
@@ -68,7 +68,7 @@ module.exports = [
       "Lower yourself back to the starting position."
     ],
     category: "strength",
-    images: ["pullups/0.jpg", "pullups/1.jpg"]
+    images: ["Pullups/0.jpg", "Pullups/1.jpg"]
   },
   {
     id: "standing-military-press",
@@ -85,7 +85,7 @@ module.exports = [
       "Lower the bar back to the starting position."
     ],
     category: "strength",
-    images: ["standing-military-press/0.jpg", "standing-military-press/1.jpg"]
+    images: ["Standing_Military_Press/0.jpg", "Standing_Military_Press/1.jpg"]
   },
   {
     id: "bent-over-barbell-row",
@@ -103,7 +103,7 @@ module.exports = [
       "Lower the bar back down."
     ],
     category: "strength",
-    images: ["bent-over-barbell-row/0.jpg", "bent-over-barbell-row/1.jpg"]
+    images: ["Bent_Over_Barbell_Row/0.jpg", "Bent_Over_Barbell_Row/1.jpg"]
   },
   {
     id: "dumbbell-bicep-curl",
@@ -120,7 +120,7 @@ module.exports = [
       "Lower the dumbbells back down."
     ],
     category: "strength",
-    images: ["dumbbell-bicep-curl/0.jpg", "dumbbell-bicep-curl/1.jpg"]
+    images: ["Dumbbell_Bicep_Curl/0.jpg", "Dumbbell_Bicep_Curl/1.jpg"]
   },
   {
     id: "plank",
@@ -137,7 +137,7 @@ module.exports = [
       "Keep your torso straight and hold the position."
     ],
     category: "strength",
-    images: ["plank/0.jpg", "plank/1.jpg"]
+    images: ["Plank/0.jpg", "Plank/1.jpg"]
   },
   {
     id: "pushups",
@@ -155,7 +155,7 @@ module.exports = [
       "Push back up."
     ],
     category: "strength",
-    images: ["pushups/0.jpg", "pushups/1.jpg"]
+    images: ["Pushups/0.jpg", "Pushups/1.jpg"]
   },
   {
     id: "walking-lunge",
@@ -173,6 +173,6 @@ module.exports = [
       "Step forward into the next lunge."
     ],
     category: "strength",
-    images: ["walking-lunge/0.jpg", "walking-lunge/1.jpg"]
+    images: ["Bodyweight_Walking_Lunge/0.jpg", "Bodyweight_Walking_Lunge/1.jpg"]
   }
 ];

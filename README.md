@@ -60,6 +60,18 @@
 
 如果远程模式仍然 3 秒超时，就先使用默认 seed 模式；完整动作库可以后续通过本地脚本或云函数更长超时配置导入。
 
+如果页面能看到动作名称但图片是灰色，说明动作数据已经导入成功，但图片 URL 加载失败。重新部署 `importExercises` 后，用下面参数把 seed 图片上传到云存储：
+
+```json
+{
+  "limit": 3,
+  "offset": 0,
+  "uploadImages": true
+}
+```
+
+再分别用 `offset: 3`、`offset: 6`、`offset: 9` 继续执行。执行后数据库记录里的 `imageFileId` 不再为空，页面会通过 `exerciseApi` 获取云存储临时 URL。
+
 如果动作选择页提示动作库为空，说明小程序没有从云端拿到 `exercises` 数据。先确认：
 
 - `exerciseApi` 已上传并部署
