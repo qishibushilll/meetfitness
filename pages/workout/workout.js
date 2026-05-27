@@ -25,8 +25,12 @@ Page({
     if (selectedExercise) {
       this.setSelectedExercise(selectedExercise);
     } else if (!this.data.selectedExercise) {
-      const exercises = await store.getExercises({ limit: 1 });
-      this.setSelectedExercise(exercises[0] || null);
+      try {
+        const exercises = await store.getExercises({ limit: 1, fallback: false });
+        this.setSelectedExercise(exercises[0] || null);
+      } catch (error) {
+        this.setSelectedExercise(null);
+      }
     }
 
     await this.refreshWorkouts(this.data.form.date);

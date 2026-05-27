@@ -2,6 +2,10 @@
   margin-top: 18rpx;
 }
 
+.retry-button {
+  margin-top: 22rpx;
+}
+
 .exercise-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

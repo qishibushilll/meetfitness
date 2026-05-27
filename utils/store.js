@@ -109,6 +109,7 @@ async function getExercises(options = {}) {
 
   const limit = options.limit || 100;
   const keyword = (options.keyword || "").trim();
+  const fallback = options.fallback !== false;
 
   try {
     const result = await wx.cloud.callFunction({
@@ -126,6 +127,13 @@ async function getExercises(options = {}) {
     }
   } catch (error) {
     console.warn("Failed to load exercises from cloud", error);
+    if (!fallback) {
+      throw error;
+    }
+  }
+
+  if (!fallback) {
+    return [];
   }
 
   return getList(KEYS.exercises).map(normalizeExercise);

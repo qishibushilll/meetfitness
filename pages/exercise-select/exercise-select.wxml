@@ -18,6 +18,11 @@
 
   <view wx:if="{{loading}}" class="panel empty">正在加载动作库</view>
 
+  <view wx:elif="{{errorText}}" class="panel empty">
+    <view>{{errorText}}</view>
+    <button class="secondary-button retry-button" bindtap="searchExercises">重试</button>
+  </view>
+
   <view wx:elif="{{exercises.length}}" class="exercise-grid">
     <view
       wx:for="{{exercises}}"

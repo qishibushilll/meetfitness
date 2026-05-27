@@ -43,6 +43,15 @@
 
 如果完整导入图片，可以分批执行，例如 `offset` 分别为 `0`、`50`、`100`。`exerciseApi` 会把云存储 `fileID` 转成临时 URL 返回给小程序页面展示。
 
+如果动作选择页提示动作库为空，说明小程序没有从云端拿到 `exercises` 数据。先确认：
+
+- `exerciseApi` 已上传并部署
+- `importExercises` 已成功运行
+- 云数据库 `exercises` 集合里有数据
+- 使用 `uploadImages: true` 导入时，云存储里出现了 `exercise-images/` 目录
+
+导入前页面不会再显示本地默认动作图，以免把应用图标误认为真实动作图片。
+
 动作数据源：
 
 - <https://github.com/yuhonas/free-exercise-db>
