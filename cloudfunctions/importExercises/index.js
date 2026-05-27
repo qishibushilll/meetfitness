@@ -1,5 +1,6 @@
 const cloud = require("wx-server-sdk");
 const https = require("https");
+const seedExercises = require("./seed");
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
@@ -163,7 +164,8 @@ exports.main = async (event = {}) => {
   const limit = event.limit ? Number(event.limit) : 10;
   const offset = event.offset ? Number(event.offset) : 0;
   const uploadImages = Boolean(event.uploadImages);
-  const raw = await fetchJson(event.url || DATA_URL);
+  const useRemote = Boolean(event.useRemote || event.url);
+  const raw = useRemote ? await fetchJson(event.url || DATA_URL) : seedExercises;
   const items = Array.isArray(raw) ? raw : raw.exercises || [];
   const selected = limit > 0 ? items.slice(offset, offset + limit) : items.slice(offset);
 
@@ -187,6 +189,7 @@ exports.main = async (event = {}) => {
 
   return {
     source: event.url || DATA_URL,
+    mode: useRemote ? "remote" : "seed",
     total: items.length,
     offset,
     imported: selected.length,
