@@ -251,32 +251,40 @@ async function deleteUser(openid, event) {
   return removeById(COLLECTIONS.users, id);
 }
 
-function keywordCondition(keyword) {
-  const value = cleanText(keyword);
-  if (!value) {
+function keywordCondition(event) {
+  const values = [event.keyword, ...(Array.isArray(event.keywords) ? event.keywords : [])]
+    .map(cleanText)
+    .filter(Boolean);
+
+  if (!values.length) {
     return null;
   }
 
-  const matcher = db.RegExp({
-    regexp: value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-    options: "i"
+  const conditions = [];
+  values.forEach((value) => {
+    const matcher = db.RegExp({
+      regexp: value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      options: "i"
+    });
+
+    conditions.push(
+      { name: matcher },
+      { displayName: matcher },
+      { nameZh: matcher },
+      { muscle: matcher },
+      { muscleZh: matcher },
+      { equipment: matcher },
+      { equipmentZh: matcher },
+      { primaryMusclesText: matcher }
+    );
   });
 
-  return _.or([
-    { name: matcher },
-    { displayName: matcher },
-    { nameZh: matcher },
-    { muscle: matcher },
-    { muscleZh: matcher },
-    { equipment: matcher },
-    { equipmentZh: matcher },
-    { primaryMusclesText: matcher }
-  ]);
+  return _.or(conditions);
 }
 
 async function listExercises(event) {
   await ensureCollection(COLLECTIONS.exercises);
-  const condition = keywordCondition(event.keyword);
+  const condition = keywordCondition(event);
   let query = db.collection(COLLECTIONS.exercises);
   if (condition) {
     query = query.where(condition);

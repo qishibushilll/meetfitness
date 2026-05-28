@@ -17,6 +17,48 @@ const SUBMISSION_STATUS_OPTIONS = [
   { value: "rejected", label: "已拒绝" }
 ];
 
+const EXERCISE_TAG_GROUPS = [
+  {
+    type: "part",
+    label: "部位",
+    tags: [
+      { label: "胸部", keywords: ["胸部", "chest"] },
+      { label: "背部", keywords: ["背部", "背阔肌", "中背部", "下背部", "back", "lats"] },
+      { label: "肩部", keywords: ["肩部", "shoulders"] },
+      { label: "腿部", keywords: ["股四头肌", "腘绳肌", "臀部", "小腿", "quadriceps", "hamstrings", "glutes", "calves"] },
+      { label: "手臂", keywords: ["肱二头肌", "肱三头肌", "前臂", "biceps", "triceps", "forearms"] },
+      { label: "核心", keywords: ["腹肌", "abdominals"] }
+    ]
+  },
+  {
+    type: "muscle",
+    label: "肌群",
+    tags: [
+      { label: "腹肌", keywords: ["腹肌", "abdominals"] },
+      { label: "背阔肌", keywords: ["背阔肌", "lats"] },
+      { label: "中背部", keywords: ["中背部", "middle back"] },
+      { label: "下背部", keywords: ["下背部", "lower back"] },
+      { label: "股四头肌", keywords: ["股四头肌", "quadriceps"] },
+      { label: "腘绳肌", keywords: ["腘绳肌", "hamstrings"] },
+      { label: "臀部", keywords: ["臀部", "glutes"] },
+      { label: "小腿", keywords: ["小腿", "calves"] }
+    ]
+  },
+  {
+    type: "equipment",
+    label: "器械",
+    tags: [
+      { label: "自重", keywords: ["自重", "body only"] },
+      { label: "杠铃", keywords: ["杠铃", "barbell"] },
+      { label: "哑铃", keywords: ["哑铃", "dumbbell"] },
+      { label: "壶铃", keywords: ["壶铃", "kettlebells"] },
+      { label: "绳索", keywords: ["绳索", "cable"] },
+      { label: "固定器械", keywords: ["固定器械", "machine"] },
+      { label: "弹力带", keywords: ["弹力带", "bands"] }
+    ]
+  }
+];
+
 function tabTitle(tab) {
   const titles = {
     submissions: "审核队列",
@@ -113,6 +155,10 @@ Page({
     users: [],
     exercises: [],
     exerciseKeyword: "",
+    exerciseTagGroups: EXERCISE_TAG_GROUPS,
+    selectedExerciseTagType: "",
+    selectedExerciseTagLabel: "",
+    selectedExerciseTagKeywords: [],
     learnContents: [],
     workouts: [],
     meals: [],
@@ -186,6 +232,7 @@ Page({
       if (activeTab === "exercises") {
         const exercises = await store.getAdminExercises({
           keyword: this.data.exerciseKeyword,
+          keywords: this.data.selectedExerciseTagKeywords,
           limit: 100
         });
         this.setData({
@@ -343,7 +390,32 @@ Page({
   },
 
   async clearExerciseSearch() {
-    this.setData({ exerciseKeyword: "" });
+    this.setData({
+      exerciseKeyword: "",
+      selectedExerciseTagType: "",
+      selectedExerciseTagLabel: "",
+      selectedExerciseTagKeywords: []
+    });
+    await this.loadActiveTab();
+  },
+
+  async selectExerciseTag(event) {
+    const groupIndex = Number(event.currentTarget.dataset.groupIndex);
+    const tagIndex = Number(event.currentTarget.dataset.tagIndex);
+    const group = this.data.exerciseTagGroups[groupIndex];
+    const tag = group && group.tags[tagIndex];
+    if (!group || !tag) {
+      return;
+    }
+
+    const selected =
+      this.data.selectedExerciseTagType === group.type && this.data.selectedExerciseTagLabel === tag.label;
+    this.setData({
+      selectedExerciseTagType: selected ? "" : group.type,
+      selectedExerciseTagLabel: selected ? "" : tag.label,
+      selectedExerciseTagKeywords: selected ? [] : tag.keywords,
+      exerciseKeyword: selected ? "" : tag.label
+    });
     await this.loadActiveTab();
   },
 

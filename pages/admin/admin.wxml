@@ -120,6 +120,25 @@
             <button class="search-button" loading="{{loading}}" bindtap="searchAdminExercises">搜索</button>
             <button wx:if="{{exerciseKeyword}}" class="clear-button" bindtap="clearExerciseSearch">清空</button>
           </view>
+          <view class="tag-panel">
+            <view wx:for="{{exerciseTagGroups}}" wx:key="type" wx:for-index="groupIndex" class="tag-row">
+              <view class="tag-row-label">{{item.label}}</view>
+              <scroll-view class="tag-scroll" scroll-x enable-flex>
+                <button
+                  wx:for="{{item.tags}}"
+                  wx:key="label"
+                  wx:for-item="tag"
+                  wx:for-index="tagIndex"
+                  class="tag-chip {{selectedExerciseTagType == item.type && selectedExerciseTagLabel == tag.label ? 'tag-chip-active' : ''}}"
+                  data-group-index="{{groupIndex}}"
+                  data-tag-index="{{tagIndex}}"
+                  bindtap="selectExerciseTag"
+                >
+                  {{tag.label}}
+                </button>
+              </scroll-view>
+            </view>
+          </view>
 
           <view wx:if="{{hasExercises}}" class="admin-list">
             <view wx:for="{{exercises}}" wx:key="docId" class="admin-record tappable-record" data-index="{{index}}" bindtap="editExercise">

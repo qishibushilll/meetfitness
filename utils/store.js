@@ -487,17 +487,20 @@ async function deleteAdminUser(id) {
 async function getAdminExercises(options = {}) {
   if (!canUseCloud()) {
     const keyword = String(options.keyword || "").trim().toLowerCase();
+    const keywords = (options.keywords || []).map((item) => String(item || "").trim().toLowerCase()).filter(Boolean);
+    const terms = [keyword, ...keywords].filter(Boolean);
     return getList(KEYS.exercises)
       .filter((item) => {
-        if (!keyword) return true;
+        if (!terms.length) return true;
         return [item.name, item.nameZh, item.displayName, item.muscle, item.muscleZh, item.equipment, item.equipmentZh]
-          .some((field) => String(field || "").toLowerCase().includes(keyword));
+          .some((field) => terms.some((term) => String(field || "").toLowerCase().includes(term)));
       })
       .map(normalizeAdminExercise);
   }
 
   const result = await callAdminApi("listExercises", {
     keyword: options.keyword || "",
+    keywords: options.keywords || [],
     limit: options.limit || 100
   });
   return (result.exercises || []).map(normalizeAdminExercise);

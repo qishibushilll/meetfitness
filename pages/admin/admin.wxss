@@ -210,6 +210,52 @@
   color: #3a4650;
 }
 
+.tag-panel {
+  padding: 0 22rpx 18rpx;
+  border-bottom: 1rpx solid #edf1f3;
+}
+
+.tag-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 14rpx;
+}
+
+.tag-row-label {
+  flex: 0 0 68rpx;
+  color: #65717a;
+  font-size: 23rpx;
+  font-weight: 700;
+}
+
+.tag-scroll {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.tag-chip {
+  display: inline-block;
+  width: auto;
+  height: 52rpx;
+  margin: 0 10rpx 0 0;
+  padding: 0 18rpx;
+  border: 1rpx solid #d8e0e4;
+  border-radius: 8rpx;
+  background: #ffffff;
+  color: #3a4650;
+  font-size: 23rpx;
+  line-height: 52rpx;
+}
+
+.tag-chip-active {
+  border-color: #0f7b6c;
+  background: #e8f4f1;
+  color: #0f7b6c;
+  font-weight: 800;
+}
+
 .admin-record {
   display: flex;
   align-items: center;
