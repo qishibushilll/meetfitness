@@ -1,4 +1,5 @@
 const store = require("../../utils/store");
+const backTop = require("../../utils/back-top");
 
 const MUSCLE_ORDER = [
   "胸部",
@@ -70,7 +71,8 @@ Page({
     showBackButton: false,
     allExercises: [],
     muscleGroups: [],
-    exercises: []
+    exercises: [],
+    showBackTop: false
   },
 
   async onLoad() {
@@ -81,6 +83,17 @@ Page({
     this.setData({
       keyword: event.detail.value
     });
+  },
+
+  onPageScroll(event) {
+    const showBackTop = backTop.shouldShowBackTop(event.scrollTop);
+    if (showBackTop !== this.data.showBackTop) {
+      this.setData({ showBackTop });
+    }
+  },
+
+  scrollToTop() {
+    backTop.scrollToTop();
   },
 
   async searchExercises() {
@@ -167,6 +180,7 @@ Page({
       showBackButton: true,
       exercises: group.exercises
     });
+    backTop.scrollToTop();
   },
 
   backToMuscles() {
@@ -177,6 +191,7 @@ Page({
       showBackButton: false,
       exercises: []
     });
+    backTop.scrollToTop();
   },
 
   goSubmitExercise() {

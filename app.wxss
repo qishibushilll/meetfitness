@@ -187,3 +187,27 @@ button::after {
   color: #7a848e;
   font-size: 26rpx;
 }
+
+.back-top-button {
+  position: fixed;
+  right: 28rpx;
+  bottom: calc(132rpx + env(safe-area-inset-bottom));
+  z-index: 40;
+  width: 76rpx;
+  height: 76rpx;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(15, 123, 108, 0.94);
+  color: #ffffff;
+  font-size: 34rpx;
+  font-weight: 800;
+  line-height: 76rpx;
+  text-align: center;
+  box-shadow: 0 12rpx 28rpx rgba(15, 38, 45, 0.22);
+}
+
+.back-top-button-active {
+  transform: translateY(2rpx);
+  background: #0b6a5d;
+}

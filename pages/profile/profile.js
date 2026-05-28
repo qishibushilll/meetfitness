@@ -1,5 +1,6 @@
 const store = require("../../utils/store");
 const auth = require("../../utils/auth");
+const backTop = require("../../utils/back-top");
 
 Page({
   data: {
@@ -19,7 +20,8 @@ Page({
     displayName: "未登录用户",
     accountText: "登录后可保存训练和饮食记录",
     avatarDisplayUrl: "/assets/app-icon-256.png",
-    saving: false
+    saving: false,
+    showBackTop: false
   },
 
   async onShow() {
@@ -147,6 +149,17 @@ Page({
 
   goDiet() {
     wx.switchTab({ url: "/pages/diet/diet" });
+  },
+
+  onPageScroll(event) {
+    const showBackTop = backTop.shouldShowBackTop(event.scrollTop);
+    if (showBackTop !== this.data.showBackTop) {
+      this.setData({ showBackTop });
+    }
+  },
+
+  scrollToTop() {
+    backTop.scrollToTop();
   },
 
   async goAdmin() {

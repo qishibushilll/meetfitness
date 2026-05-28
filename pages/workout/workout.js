@@ -1,6 +1,7 @@
 const store = require("../../utils/store");
 const auth = require("../../utils/auth");
 const { formatDate } = require("../../utils/date");
+const backTop = require("../../utils/back-top");
 
 function defaultForm() {
   return {
@@ -20,7 +21,8 @@ Page({
     form: defaultForm(),
     recommendedExercises: [],
     hasRecommendedExercises: false,
-    selectedDateWorkouts: []
+    selectedDateWorkouts: [],
+    showBackTop: false
   },
 
   async onShow() {
@@ -56,6 +58,17 @@ Page({
         hasRecommendedExercises: false
       });
     }
+  },
+
+  onPageScroll(event) {
+    const showBackTop = backTop.shouldShowBackTop(event.scrollTop);
+    if (showBackTop !== this.data.showBackTop) {
+      this.setData({ showBackTop });
+    }
+  },
+
+  scrollToTop() {
+    backTop.scrollToTop();
   },
 
   setSelectedExercise(exercise) {

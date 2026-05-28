@@ -56,4 +56,10 @@
     </view>
     <view wx:else class="panel empty">这一天还没有饮食记录</view>
   </view>
+  <button
+    wx:if="{{showBackTop}}"
+    class="back-top-button"
+    hover-class="back-top-button-active"
+    bindtap="scrollToTop"
+  >↑</button>
 </view>

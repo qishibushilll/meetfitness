@@ -1,6 +1,7 @@
 const store = require("../../utils/store");
 const auth = require("../../utils/auth");
 const { formatDate } = require("../../utils/date");
+const backTop = require("../../utils/back-top");
 
 const MEAL_TYPES = ["早餐", "午餐", "晚餐", "加餐", "训练前", "训练后"];
 
@@ -20,7 +21,8 @@ Page({
     mealTypeIndex: 0,
     selectedMealType: MEAL_TYPES[0],
     form: defaultForm(),
-    selectedDateMeals: []
+    selectedDateMeals: [],
+    showBackTop: false
   },
 
   async onShow() {
@@ -32,6 +34,17 @@ Page({
     this.setData({
       selectedDateMeals: day.meals
     });
+  },
+
+  onPageScroll(event) {
+    const showBackTop = backTop.shouldShowBackTop(event.scrollTop);
+    if (showBackTop !== this.data.showBackTop) {
+      this.setData({ showBackTop });
+    }
+  },
+
+  scrollToTop() {
+    backTop.scrollToTop();
   },
 
   async onDateChange(event) {

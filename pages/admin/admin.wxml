@@ -304,6 +304,13 @@
     </view>
   </view>
 
+  <button
+    wx:if="{{showBackTop && !editingExercise}}"
+    class="back-top-button"
+    hover-class="back-top-button-active"
+    bindtap="scrollToTop"
+  >↑</button>
+
   <view wx:if="{{editingExercise}}" class="modal-mask" catchtouchmove="noop">
     <view class="modal-sheet">
       <view class="modal-head">

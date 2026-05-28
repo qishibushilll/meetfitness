@@ -1,5 +1,6 @@
 const store = require("../../utils/store");
 const auth = require("../../utils/auth");
+const backTop = require("../../utils/back-top");
 
 const TABS = [
   { value: "submissions", label: "审核队列" },
@@ -178,7 +179,8 @@ Page({
     editingExercise: false,
     editingLearn: false,
     editingWorkout: false,
-    editingMeal: false
+    editingMeal: false,
+    showBackTop: false
   },
 
   async onShow() {
@@ -193,6 +195,17 @@ Page({
   },
 
   noop() {},
+
+  onPageScroll(event) {
+    const showBackTop = backTop.shouldShowBackTop(event.scrollTop);
+    if (showBackTop !== this.data.showBackTop) {
+      this.setData({ showBackTop });
+    }
+  },
+
+  scrollToTop() {
+    backTop.scrollToTop();
+  },
 
   async loadAdminData() {
     await this.refreshDashboard();

@@ -23,4 +23,10 @@
   </view>
 
   <view wx:else class="panel empty">还没有历史记录</view>
+  <button
+    wx:if="{{showBackTop}}"
+    class="back-top-button"
+    hover-class="back-top-button-active"
+    bindtap="scrollToTop"
+  >↑</button>
 </view>

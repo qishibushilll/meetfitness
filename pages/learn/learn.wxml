@@ -31,4 +31,10 @@
     <view>暂无学习内容</view>
     <view class="empty-hint">可以先在 learnContents 集合中配置视频链接和封面</view>
   </view>
+  <button
+    wx:if="{{showBackTop}}"
+    class="back-top-button"
+    hover-class="back-top-button-active"
+    bindtap="scrollToTop"
+  >↑</button>
 </view>

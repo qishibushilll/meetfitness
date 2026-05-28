@@ -75,4 +75,10 @@
       </view>
     </view>
   </view>
+  <button
+    wx:if="{{showBackTop}}"
+    class="back-top-button"
+    hover-class="back-top-button-active"
+    bindtap="scrollToTop"
+  >↑</button>
 </view>

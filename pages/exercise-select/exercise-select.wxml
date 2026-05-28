@@ -90,4 +90,10 @@
       <button class="secondary-button retry-button" bindtap="goSubmitExercise">提交新动作</button>
     </view>
   </view>
+  <button
+    wx:if="{{showBackTop}}"
+    class="back-top-button"
+    hover-class="back-top-button-active"
+    bindtap="scrollToTop"
+  >↑</button>
 </view>
