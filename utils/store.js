@@ -612,6 +612,7 @@ async function getExercises(options = {}) {
   const limit = options.limit || 100;
   const keyword = (options.keyword || "").trim();
   const fallback = options.fallback !== false;
+  const minExpected = Math.min(Number(options.minExpected) || 0, limit);
 
   try {
     const result = await wx.cloud.callFunction({
@@ -623,9 +624,12 @@ async function getExercises(options = {}) {
       }
     });
     const data = (result.result.data || []).map(normalizeExercise);
-    if (data.length) {
+    if (data.length && (!minExpected || data.length >= minExpected)) {
       setList(KEYS.exercises, data);
       return data;
+    }
+    if (data.length && minExpected && data.length < minExpected) {
+      console.warn(`Exercise API returned ${data.length}, expected at least ${minExpected}; using database fallback`);
     }
   } catch (error) {
     console.warn("Failed to load exercises from cloud", error);

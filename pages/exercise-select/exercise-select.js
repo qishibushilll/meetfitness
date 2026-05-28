@@ -109,6 +109,7 @@ Page({
     try {
       const exercises = await store.getExercises({
         limit: 1000,
+        minExpected: 800,
         fallback: false
       });
       const prepared = prepareExercises(exercises);

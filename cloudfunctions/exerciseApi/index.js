@@ -8,6 +8,7 @@ const db = cloud.database();
 const _ = db.command;
 const EXERCISES = "exercises";
 const LEARN_CONTENTS = "learnContents";
+const DB_PAGE_SIZE = 100;
 const TEMP_URL_BATCH_SIZE = 50;
 const zhKeywordMap = {
   腹肌: "abdominals",
@@ -126,6 +127,28 @@ async function withTempMediaUrls(data) {
   }));
 }
 
+async function getExerciseRows({ condition = null, limit }) {
+  const rows = [];
+
+  for (let offset = 0; offset < limit; offset += DB_PAGE_SIZE) {
+    let query = db.collection(EXERCISES);
+    if (condition) {
+      query = query.where(condition);
+    }
+
+    const pageLimit = Math.min(DB_PAGE_SIZE, limit - rows.length);
+    const result = await query.orderBy("name", "asc").skip(offset).limit(pageLimit).get();
+    const page = result.data || [];
+    rows.push(...page);
+
+    if (page.length < pageLimit || rows.length >= limit) {
+      break;
+    }
+  }
+
+  return rows;
+}
+
 exports.main = async (event) => {
   const action = event.action || "list";
   const limit = Math.min(Math.max(Number(event.limit) || 60, 1), 1000);
@@ -152,8 +175,8 @@ exports.main = async (event) => {
   if (action === "search") {
     const keyword = normalizeKeyword(event.keyword);
     if (!keyword) {
-      const result = await db.collection(EXERCISES).orderBy("name", "asc").limit(limit).get();
-      return { data: await withTempImageUrls(result.data) };
+      const data = await getExerciseRows({ limit });
+      return { data: await withTempImageUrls(data) };
     }
 
     const matchers = keywordVariants(keyword).map((value) =>
@@ -178,15 +201,10 @@ exports.main = async (event) => {
       );
     });
 
-    const result = await db
-      .collection(EXERCISES)
-      .where(_.or(conditions))
-      .limit(limit)
-      .get();
-
-    return { data: await withTempImageUrls(result.data) };
+    const data = await getExerciseRows({ condition: _.or(conditions), limit });
+    return { data: await withTempImageUrls(data) };
   }
 
-  const result = await db.collection(EXERCISES).orderBy("name", "asc").limit(limit).get();
-  return { data: await withTempImageUrls(result.data) };
+  const data = await getExerciseRows({ limit });
+  return { data: await withTempImageUrls(data) };
 };
