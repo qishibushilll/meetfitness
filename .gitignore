@@ -1,6 +1,7 @@
 node_modules/
 miniprogram_npm/
 dist/
+.local/
 .DS_Store
 Thumbs.db
 *.log
