@@ -630,6 +630,11 @@ async function getExercises(options = {}) {
     }
     if (data.length && minExpected && data.length < minExpected) {
       console.warn(`Exercise API returned ${data.length}, expected at least ${minExpected}; using database fallback`);
+      const fallbackData = await loadExercisesFromDb({ keyword, limit });
+      if (fallbackData.length) {
+        setList(KEYS.exercises, fallbackData);
+        return fallbackData;
+      }
     }
   } catch (error) {
     console.warn("Failed to load exercises from cloud", error);
