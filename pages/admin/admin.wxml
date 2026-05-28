@@ -57,7 +57,7 @@
         <view class="workspace-head">
           <view>
             <view class="workspace-title">{{activeTabTitle}}</view>
-            <view class="workspace-meta">最近 100 条数据</view>
+            <view class="workspace-meta">{{activeTab == 'exercises' ? '搜索后点选动作编辑' : '最近 100 条数据'}}</view>
           </view>
           <button wx:if="{{activeTab == 'exercises'}}" class="primary-action" bindtap="newExercise">新增动作</button>
           <button wx:if="{{activeTab == 'learn'}}" class="primary-action" bindtap="newLearnContent">新增内容</button>
@@ -108,38 +108,21 @@
         </view>
 
         <view wx:elif="{{activeTab == 'exercises'}}">
-          <view wx:if="{{editingExercise}}" class="editor-panel">
-            <view class="editor-title">动作编辑</view>
-            <view class="form-item">
-              <text class="field-label">动作名称</text>
-              <input class="field-input" value="{{exerciseForm.nameZh}}" data-field="nameZh" bindinput="onExerciseInput" />
-            </view>
-            <view class="form-item">
-              <text class="field-label">英文名称</text>
-              <input class="field-input" value="{{exerciseForm.nameEn}}" data-field="nameEn" bindinput="onExerciseInput" />
-            </view>
-            <view class="field-grid">
-              <view class="form-item">
-                <text class="field-label">肌群</text>
-                <input class="field-input" value="{{exerciseForm.muscleZh}}" data-field="muscleZh" bindinput="onExerciseInput" />
-              </view>
-              <view class="form-item">
-                <text class="field-label">器械</text>
-                <input class="field-input" value="{{exerciseForm.equipmentZh}}" data-field="equipmentZh" bindinput="onExerciseInput" />
-              </view>
-            </view>
-            <view class="form-item">
-              <text class="field-label">图片 URL / cloud fileID</text>
-              <input class="field-input" value="{{exerciseForm.imageUrl}}" data-field="imageUrl" bindinput="onExerciseInput" />
-            </view>
-            <view class="editor-actions">
-              <button class="primary-action" loading="{{saving}}" bindtap="saveExercise">保存</button>
-              <button class="ghost-action" bindtap="cancelExerciseEdit">取消</button>
-            </view>
+          <view class="search-panel">
+            <input
+              class="search-input"
+              value="{{exerciseKeyword}}"
+              placeholder="搜索动作、肌群或器械"
+              confirm-type="search"
+              bindinput="onExerciseKeywordInput"
+              bindconfirm="searchAdminExercises"
+            />
+            <button class="search-button" loading="{{loading}}" bindtap="searchAdminExercises">搜索</button>
+            <button wx:if="{{exerciseKeyword}}" class="clear-button" bindtap="clearExerciseSearch">清空</button>
           </view>
 
           <view wx:if="{{hasExercises}}" class="admin-list">
-            <view wx:for="{{exercises}}" wx:key="docId" class="admin-record">
+            <view wx:for="{{exercises}}" wx:key="docId" class="admin-record tappable-record" data-index="{{index}}" bindtap="editExercise">
               <image class="record-cover" src="{{item.imageUrl}}" mode="aspectFill" />
               <view class="record-content">
                 <view class="record-title">{{item.title}}</view>
@@ -147,12 +130,11 @@
                 <view class="record-foot">{{item.meta}}</view>
               </view>
               <view class="record-actions">
-                <button class="text-action" data-index="{{index}}" bindtap="editExercise">编辑</button>
-                <button class="text-action danger-text" data-id="{{item.docId}}" loading="{{deletingId == item.docId}}" bindtap="deleteExercise">删除</button>
+                <button class="text-action danger-text" data-id="{{item.docId}}" loading="{{deletingId == item.docId}}" catchtap="deleteExercise">删除</button>
               </view>
             </view>
           </view>
-          <view wx:else class="empty-state">暂无动作</view>
+          <view wx:else class="empty-state">没有找到动作</view>
         </view>
 
         <view wx:elif="{{activeTab == 'learn'}}">
@@ -299,6 +281,43 @@
           </view>
           <view wx:else class="empty-state">暂无饮食记录</view>
         </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{editingExercise}}" class="modal-mask" catchtouchmove="noop">
+    <view class="modal-sheet">
+      <view class="modal-head">
+        <view class="modal-title">{{exerciseForm.docId ? '编辑动作' : '新增动作'}}</view>
+        <button class="modal-close" bindtap="cancelExerciseEdit">关闭</button>
+      </view>
+      <scroll-view class="modal-body" scroll-y>
+        <view class="form-item">
+          <text class="field-label">动作名称</text>
+          <input class="field-input" value="{{exerciseForm.nameZh}}" data-field="nameZh" bindinput="onExerciseInput" />
+        </view>
+        <view class="form-item">
+          <text class="field-label">英文名称</text>
+          <input class="field-input" value="{{exerciseForm.nameEn}}" data-field="nameEn" bindinput="onExerciseInput" />
+        </view>
+        <view class="field-grid">
+          <view class="form-item">
+            <text class="field-label">肌群</text>
+            <input class="field-input" value="{{exerciseForm.muscleZh}}" data-field="muscleZh" bindinput="onExerciseInput" />
+          </view>
+          <view class="form-item">
+            <text class="field-label">器械</text>
+            <input class="field-input" value="{{exerciseForm.equipmentZh}}" data-field="equipmentZh" bindinput="onExerciseInput" />
+          </view>
+        </view>
+        <view class="form-item">
+          <text class="field-label">图片 URL / cloud fileID</text>
+          <input class="field-input" value="{{exerciseForm.imageUrl}}" data-field="imageUrl" bindinput="onExerciseInput" />
+        </view>
+      </scroll-view>
+      <view class="modal-actions">
+        <button class="primary-action" loading="{{saving}}" bindtap="saveExercise">保存</button>
+        <button class="ghost-action" bindtap="cancelExerciseEdit">取消</button>
       </view>
     </view>
   </view>

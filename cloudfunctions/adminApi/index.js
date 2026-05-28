@@ -5,6 +5,7 @@ cloud.init({
 });
 
 const db = cloud.database();
+const _ = db.command;
 
 const COLLECTIONS = {
   submissions: "exerciseSubmissions",
@@ -46,7 +47,11 @@ function cleanNumber(value) {
 }
 
 function limitFromEvent(event) {
-  return Math.min(Math.max(Number(event.limit) || 50, 1), 100);
+  return Math.min(Math.max(Number(event.limit) || 50, 1), 1000);
+}
+
+function skipFromEvent(event) {
+  return Math.max(Number(event.skip) || Number(event.offset) || 0, 0);
 }
 
 async function ensureAdmin(openid) {
@@ -246,13 +251,38 @@ async function deleteUser(openid, event) {
   return removeById(COLLECTIONS.users, id);
 }
 
+function keywordCondition(keyword) {
+  const value = cleanText(keyword);
+  if (!value) {
+    return null;
+  }
+
+  const matcher = db.RegExp({
+    regexp: value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+    options: "i"
+  });
+
+  return _.or([
+    { name: matcher },
+    { displayName: matcher },
+    { nameZh: matcher },
+    { muscle: matcher },
+    { muscleZh: matcher },
+    { equipment: matcher },
+    { equipmentZh: matcher },
+    { primaryMusclesText: matcher }
+  ]);
+}
+
 async function listExercises(event) {
   await ensureCollection(COLLECTIONS.exercises);
-  const result = await db
-    .collection(COLLECTIONS.exercises)
-    .orderBy("name", "asc")
-    .limit(limitFromEvent(event))
-    .get();
+  const condition = keywordCondition(event.keyword);
+  let query = db.collection(COLLECTIONS.exercises);
+  if (condition) {
+    query = query.where(condition);
+  }
+
+  const result = await query.orderBy("name", "asc").skip(skipFromEvent(event)).limit(limitFromEvent(event)).get();
 
   return {
     exercises: await withTempUrls(result.data, "imageFileId", "imageUrl")

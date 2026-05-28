@@ -112,6 +112,7 @@ Page({
     submissions: [],
     users: [],
     exercises: [],
+    exerciseKeyword: "",
     learnContents: [],
     workouts: [],
     meals: [],
@@ -144,6 +145,8 @@ Page({
     this.setData({ isAdmin: true, isUserOnly: false });
     await this.loadAdminData();
   },
+
+  noop() {},
 
   async loadAdminData() {
     await this.refreshDashboard();
@@ -181,7 +184,10 @@ Page({
       }
 
       if (activeTab === "exercises") {
-        const exercises = await store.getAdminExercises();
+        const exercises = await store.getAdminExercises({
+          keyword: this.data.exerciseKeyword,
+          limit: 100
+        });
         this.setData({
           exercises,
           hasExercises: Boolean(exercises.length)
@@ -326,6 +332,21 @@ Page({
     });
   },
 
+  onExerciseKeywordInput(event) {
+    this.setData({
+      exerciseKeyword: event.detail.value
+    });
+  },
+
+  async searchAdminExercises() {
+    await this.loadActiveTab();
+  },
+
+  async clearExerciseSearch() {
+    this.setData({ exerciseKeyword: "" });
+    await this.loadActiveTab();
+  },
+
   editExercise(event) {
     const item = this.data.exercises[event.currentTarget.dataset.index];
     if (!item) {
@@ -342,7 +363,7 @@ Page({
         nameEn: item.nameEn || "",
         muscleZh: item.muscle || "",
         equipmentZh: item.equipment || "",
-        imageUrl: item.imageUrl || "",
+        imageUrl: item.imageFileId || item.imageUrl || "",
         imageFileId: item.imageFileId || ""
       }
     });
@@ -372,7 +393,10 @@ Page({
     try {
       await store.saveAdminExercise({
         ...this.data.exerciseForm,
-        id: this.data.exerciseForm.docId || this.data.exerciseForm.id
+        id: this.data.exerciseForm.docId || this.data.exerciseForm.id,
+        imageFileId: this.data.exerciseForm.imageUrl && this.data.exerciseForm.imageUrl.startsWith("cloud://")
+          ? this.data.exerciseForm.imageUrl
+          : this.data.exerciseForm.imageFileId
       });
       wx.showToast({ title: "动作已保存", icon: "success" });
       this.cancelExerciseEdit();

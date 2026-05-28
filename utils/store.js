@@ -484,12 +484,22 @@ async function deleteAdminUser(id) {
   return callAdminApi("deleteUser", { id });
 }
 
-async function getAdminExercises() {
+async function getAdminExercises(options = {}) {
   if (!canUseCloud()) {
-    return getList(KEYS.exercises).map(normalizeAdminExercise);
+    const keyword = String(options.keyword || "").trim().toLowerCase();
+    return getList(KEYS.exercises)
+      .filter((item) => {
+        if (!keyword) return true;
+        return [item.name, item.nameZh, item.displayName, item.muscle, item.muscleZh, item.equipment, item.equipmentZh]
+          .some((field) => String(field || "").toLowerCase().includes(keyword));
+      })
+      .map(normalizeAdminExercise);
   }
 
-  const result = await callAdminApi("listExercises");
+  const result = await callAdminApi("listExercises", {
+    keyword: options.keyword || "",
+    limit: options.limit || 100
+  });
   return (result.exercises || []).map(normalizeAdminExercise);
 }
 
