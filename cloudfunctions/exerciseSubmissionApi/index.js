@@ -6,6 +6,7 @@ cloud.init({
 
 const db = cloud.database();
 const SUBMISSIONS = "exerciseSubmissions";
+const USERS = "users";
 
 async function ensureCollection(name) {
   try {
@@ -31,6 +32,20 @@ function cleanText(value) {
   return String(value || "").trim();
 }
 
+async function ensureRegistered(openid) {
+  await ensureCollection(USERS);
+
+  const bySystemOpenid = await db.collection(USERS).where({ _openid: openid, registered: true }).limit(1).get();
+  if (bySystemOpenid.data.length) {
+    return;
+  }
+
+  const byOpenid = await db.collection(USERS).where({ openid, registered: true }).limit(1).get();
+  if (!byOpenid.data.length) {
+    throw new Error("Login required");
+  }
+}
+
 exports.main = async (event = {}) => {
   const { OPENID } = cloud.getWXContext();
   const action = event.action || "submit";
@@ -39,6 +54,7 @@ exports.main = async (event = {}) => {
     throw new Error("Unsupported action");
   }
 
+  await ensureRegistered(OPENID);
   await ensureCollection(SUBMISSIONS);
 
   const payload = event.exercise || {};

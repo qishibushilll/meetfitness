@@ -1,4 +1,5 @@
 const store = require("../../utils/store");
+const auth = require("../../utils/auth");
 const { formatDate } = require("../../utils/date");
 
 const MEAL_TYPES = ["早餐", "午餐", "晚餐", "加餐", "训练前", "训练后"];
@@ -57,6 +58,11 @@ Page({
   },
 
   async saveMeal() {
+    const profile = await auth.requireRegistered();
+    if (!profile) {
+      return;
+    }
+
     if (!this.data.form.food) {
       wx.showToast({ title: "请填写食物", icon: "none" });
       return;
@@ -78,6 +84,11 @@ Page({
   },
 
   async removeMeal(event) {
+    const profile = await auth.requireRegistered();
+    if (!profile) {
+      return;
+    }
+
     await store.removeMeal(event.currentTarget.dataset.id);
     await this.refreshMeals(this.data.form.date);
   }

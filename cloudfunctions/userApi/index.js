@@ -30,7 +30,7 @@ async function ensureCollection(name) {
 function normalizeUser(user, openid) {
   return {
     id: user._id || "",
-    openid,
+    openid: user._openid || user.openid || openid,
     nickName: user.nickName || "",
     avatarUrl: user.avatarUrl || "",
     avatarFileId: user.avatarFileId || "",
@@ -42,15 +42,35 @@ function normalizeUser(user, openid) {
   };
 }
 
+async function findUserByOpenid(openid) {
+  const bySystemOpenid = await db.collection(USERS).where({ _openid: openid }).limit(1).get();
+  if (bySystemOpenid.data.length) {
+    return bySystemOpenid.data[0];
+  }
+
+  const byOpenid = await db.collection(USERS).where({ openid }).limit(1).get();
+  return byOpenid.data[0] || null;
+}
+
 async function getOrCreateUser(openid) {
   await ensureCollection(USERS);
 
-  const result = await db.collection(USERS).where({ _openid: openid }).limit(1).get();
-  if (result.data.length) {
-    return normalizeUser(result.data[0], openid);
+  const existing = await findUserByOpenid(openid);
+  if (existing) {
+    if (existing.openid !== openid) {
+      await db.collection(USERS).doc(existing._id).update({
+        data: {
+          openid,
+          updatedAt: Date.now()
+        }
+      });
+      existing.openid = openid;
+    }
+    return normalizeUser(existing, openid);
   }
 
   const data = {
+    openid,
     nickName: "",
     avatarUrl: "",
     avatarFileId: "",
@@ -69,6 +89,7 @@ async function updateProfile(openid, payload) {
 
   const user = await getOrCreateUser(openid);
   const data = {
+    openid,
     nickName: String(payload.nickName || "").trim(),
     avatarUrl: payload.avatarUrl || "",
     avatarFileId: payload.avatarFileId || "",

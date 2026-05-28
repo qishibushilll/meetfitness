@@ -1,4 +1,5 @@
 const store = require("../../utils/store");
+const auth = require("../../utils/auth");
 
 Page({
   data: {
@@ -15,9 +16,8 @@ Page({
     isAdmin: false,
     isRegistered: false,
     isUnregistered: true,
-    displayName: "未注册用户",
-    roleText: "登录后可记录训练和饮食",
-    roleBadge: "未注册",
+    displayName: "未登录用户",
+    accountText: "登录后可保存训练和饮食记录",
     avatarDisplayUrl: "/assets/app-icon-256.png",
     saving: false
   },
@@ -40,17 +40,12 @@ Page({
       isAdmin,
       isRegistered,
       isUnregistered: !isRegistered,
-      displayName: isRegistered ? profile.nickName : "未注册用户",
+      displayName: isRegistered ? profile.nickName : "未登录用户",
       "form.nickName": profile.nickName || "",
       "form.avatarUrl": profile.avatarUrl || "",
       "form.avatarFileId": profile.avatarFileId || "",
       avatarDisplayUrl,
-      roleText: isRegistered
-        ? isAdmin
-          ? "管理员：可进入数据库维护入口"
-          : "普通用户：记录训练、饮食和查看历史"
-        : "填写昵称完成注册",
-      roleBadge: isRegistered ? (isAdmin ? "管理员" : "用户") : "未注册"
+      accountText: isRegistered ? "记录训练、饮食和查看历史" : "填写昵称完成登录"
     });
   },
 
@@ -154,7 +149,12 @@ Page({
     wx.switchTab({ url: "/pages/diet/diet" });
   },
 
-  goAdmin() {
+  async goAdmin() {
+    const profile = await auth.requireAdmin();
+    if (!profile) {
+      return;
+    }
+
     wx.navigateTo({ url: "/pages/admin/admin" });
   }
 });

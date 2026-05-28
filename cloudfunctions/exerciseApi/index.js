@@ -7,6 +7,7 @@ cloud.init({
 const db = cloud.database();
 const _ = db.command;
 const EXERCISES = "exercises";
+const LEARN_CONTENTS = "learnContents";
 const zhKeywordMap = {
   腹肌: "abdominals",
   腹部: "abdominals",
@@ -79,9 +80,58 @@ async function withTempImageUrls(data) {
   }));
 }
 
+async function withTempMediaUrls(data) {
+  const fileIds = [];
+  data.forEach((item) => {
+    ["coverFileId", "videoFileId"].forEach((field) => {
+      const fileId = item[field];
+      if (fileId && String(fileId).startsWith("cloud://")) {
+        fileIds.push(fileId);
+      }
+    });
+  });
+
+  if (!fileIds.length) {
+    return data;
+  }
+
+  const result = await cloud.getTempFileURL({ fileList: Array.from(new Set(fileIds)) });
+  const urlMap = {};
+  result.fileList.forEach((item) => {
+    if (item.tempFileURL) {
+      urlMap[item.fileID] = item.tempFileURL;
+    }
+  });
+
+  return data.map((item) => ({
+    ...item,
+    coverUrl: urlMap[item.coverFileId] || item.coverUrl || "",
+    videoUrl: urlMap[item.videoFileId] || item.videoUrl || ""
+  }));
+}
+
 exports.main = async (event) => {
   const action = event.action || "list";
   const limit = Math.min(Number(event.limit) || 60, 100);
+
+  if (action === "learnByMuscle") {
+    const muscle = normalizeKeyword(event.muscle);
+    if (!muscle) {
+      return { data: [] };
+    }
+
+    const result = await db
+      .collection(LEARN_CONTENTS)
+      .where({
+        muscle,
+        status: "published"
+      })
+      .orderBy("sort", "asc")
+      .limit(limit)
+      .get();
+
+    return { data: await withTempMediaUrls(result.data) };
+  }
 
   if (action === "search") {
     const keyword = normalizeKeyword(event.keyword);

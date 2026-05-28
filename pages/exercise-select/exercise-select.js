@@ -73,8 +73,8 @@ Page({
     exercises: []
   },
 
-  onLoad() {
-    this.loadMuscleGroups();
+  async onLoad() {
+    await this.loadMuscleGroups();
   },
 
   onKeywordInput(event) {
@@ -180,6 +180,13 @@ Page({
 
   goSubmitExercise() {
     wx.navigateTo({ url: "/pages/exercise-submit/exercise-submit" });
+  },
+
+  goLearn(event) {
+    const group = this.data.muscleGroups[event.currentTarget.dataset.index];
+    wx.navigateTo({
+      url: `/pages/learn/learn?muscle=${encodeURIComponent(group.name)}`
+    });
   },
 
   selectExercise(event) {

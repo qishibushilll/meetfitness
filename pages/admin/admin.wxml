@@ -1,78 +1,303 @@
-<view class="page">
-  <view class="section">
-    <view class="title">数据库维护</view>
-    <view class="subtitle">管理员入口</view>
-  </view>
-
-  <view wx:if="{{isUserOnly}}" class="panel empty">当前账号不是管理员</view>
-
-  <view wx:else>
-    <view class="section panel">
-      <view class="metric-grid admin-metrics">
-        <view class="metric">
-          <view class="metric-value">{{stats.exercises}}</view>
-          <view class="metric-label">动作</view>
-        </view>
-        <view class="metric">
-          <view class="metric-value">{{stats.meals}}</view>
-          <view class="metric-label">饮食</view>
-        </view>
-        <view class="metric">
-          <view class="metric-value">{{stats.workouts}}</view>
-          <view class="metric-label">训练</view>
-        </view>
-        <view class="metric">
-          <view class="metric-value">{{stats.users}}</view>
-          <view class="metric-label">用户</view>
-        </view>
+<view class="admin-page">
+  <view class="admin-shell">
+    <view class="admin-topbar">
+      <view>
+        <view class="admin-kicker">Fitness Ops</view>
+        <view class="admin-title">控制台</view>
       </view>
+      <button class="topbar-button" loading="{{loading}}" bindtap="refreshCurrent">刷新</button>
     </view>
 
-    <view class="section">
-      <view class="row-between section-heading">
-        <view class="section-title">待审核动作</view>
-        <button class="secondary-button refresh-button" loading="{{loading}}" bindtap="loadAdminData">刷新</button>
+    <view wx:if="{{isUserOnly}}" class="denied-panel">
+      <view class="denied-title">无法访问</view>
+      <view class="denied-text">当前账号没有控制台权限</view>
+    </view>
+
+    <view wx:else>
+      <view class="stats-strip">
+        <view class="stat-cell">
+          <view class="stat-value">{{stats.exercises}}</view>
+          <view class="stat-label">动作</view>
+        </view>
+        <view class="stat-cell">
+          <view class="stat-value">{{stats.learnContents}}</view>
+          <view class="stat-label">学习</view>
+        </view>
+        <view class="stat-cell">
+          <view class="stat-value">{{stats.workouts}}</view>
+          <view class="stat-label">训练</view>
+        </view>
+        <view class="stat-cell">
+          <view class="stat-value">{{stats.meals}}</view>
+          <view class="stat-label">饮食</view>
+        </view>
+        <view class="stat-cell">
+          <view class="stat-value">{{stats.users}}</view>
+          <view class="stat-label">用户</view>
+        </view>
+        <view class="stat-cell">
+          <view class="stat-value">{{stats.submissions}}</view>
+          <view class="stat-label">提交</view>
+        </view>
       </view>
 
-      <view wx:if="{{hasSubmissions}}" class="list">
-        <view wx:for="{{submissions}}" wx:key="id" class="list-item review-item">
-          <view class="review-main">
-            <image class="review-image" src="{{item.imageUrl}}" mode="aspectFill" />
-            <view class="review-body">
-              <view class="item-title">{{item.name}}</view>
-              <view class="item-meta">{{item.muscle}} · {{item.equipment}}</view>
-              <view wx:if="{{item.note}}" class="item-meta">{{item.note}}</view>
-              <view class="item-meta">提交时间：{{item.createdAtText}}</view>
+      <scroll-view class="module-tabs" scroll-x enable-flex>
+        <button
+          wx:for="{{tabs}}"
+          wx:key="value"
+          class="module-tab {{activeTab == item.value ? 'module-tab-active' : ''}}"
+          data-tab="{{item.value}}"
+          bindtap="switchTab"
+        >
+          {{item.label}}
+        </button>
+      </scroll-view>
+
+      <view class="workspace">
+        <view class="workspace-head">
+          <view>
+            <view class="workspace-title">{{activeTabTitle}}</view>
+            <view class="workspace-meta">最近 100 条数据</view>
+          </view>
+          <button wx:if="{{activeTab == 'exercises'}}" class="primary-action" bindtap="newExercise">新增动作</button>
+          <button wx:if="{{activeTab == 'learn'}}" class="primary-action" bindtap="newLearnContent">新增内容</button>
+          <view wx:if="{{activeTab == 'submissions'}}" class="status-filter">
+            <picker range="{{submissionStatusOptions}}" value="{{submissionStatusIndex}}" bindchange="onSubmissionStatusChange">
+              <view class="filter-value">{{submissionStatusOptions[submissionStatusIndex]}}</view>
+            </picker>
+          </view>
+        </view>
+
+        <view wx:if="{{activeTab == 'submissions'}}">
+          <view wx:if="{{hasSubmissions}}" class="admin-list">
+            <view wx:for="{{submissions}}" wx:key="id" class="admin-record submission-record">
+              <image class="record-cover" src="{{item.imageUrl}}" mode="aspectFill" />
+              <view class="record-content">
+                <view class="record-title">{{item.name}}</view>
+                <view class="record-meta">{{item.muscle}} / {{item.equipment}}</view>
+                <view wx:if="{{item.note}}" class="record-note">{{item.note}}</view>
+                <view class="record-foot">状态 {{item.status}} · {{item.createdAtText}}</view>
+              </view>
+              <view class="record-actions">
+                <button wx:if="{{item.status == 'pending'}}" class="text-action primary-text" data-id="{{item.id}}" loading="{{reviewingId == item.id}}" bindtap="approveSubmission">通过</button>
+                <button wx:if="{{item.status == 'pending'}}" class="text-action danger-text" data-id="{{item.id}}" loading="{{reviewingId == item.id}}" bindtap="rejectSubmission">拒绝</button>
+                <button class="text-action" data-id="{{item.id}}" loading="{{deletingId == item.id}}" bindtap="deleteSubmission">删除</button>
+              </view>
             </view>
           </view>
-          <view class="review-actions">
-            <button class="primary-button review-button" data-id="{{item.id}}" bindtap="approveSubmission">通过</button>
-            <button class="danger-button review-button" data-id="{{item.id}}" bindtap="rejectSubmission">拒绝</button>
+          <view wx:else class="empty-state">暂无提交记录</view>
+        </view>
+
+        <view wx:elif="{{activeTab == 'users'}}">
+          <view wx:if="{{hasUsers}}" class="admin-list">
+            <view wx:for="{{users}}" wx:key="id" class="admin-record user-record">
+              <image class="user-avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
+              <view class="record-content">
+                <view class="record-title">{{item.nickName}}</view>
+                <view class="record-meta">{{item.registeredText}} · {{item.updatedAtText}}</view>
+                <view class="record-foot openid">{{item.openid}}</view>
+              </view>
+              <view class="record-actions">
+                <button wx:if="{{item.role != 'admin'}}" class="text-action primary-text" data-id="{{item.id}}" loading="{{roleChangingId == item.id}}" bindtap="promoteUser">授权</button>
+                <button wx:if="{{item.role == 'admin'}}" class="text-action" data-id="{{item.id}}" loading="{{roleChangingId == item.id}}" bindtap="demoteUser">收回</button>
+                <button class="text-action danger-text" data-id="{{item.id}}" loading="{{deletingId == item.id}}" bindtap="deleteUser">删除</button>
+              </view>
+            </view>
           </view>
+          <view wx:else class="empty-state">暂无用户</view>
         </view>
-      </view>
 
-      <view wx:else class="panel empty">暂无待审核动作</view>
-    </view>
+        <view wx:elif="{{activeTab == 'exercises'}}">
+          <view wx:if="{{editingExercise}}" class="editor-panel">
+            <view class="editor-title">动作编辑</view>
+            <view class="form-item">
+              <text class="field-label">动作名称</text>
+              <input class="field-input" value="{{exerciseForm.nameZh}}" data-field="nameZh" bindinput="onExerciseInput" />
+            </view>
+            <view class="form-item">
+              <text class="field-label">英文名称</text>
+              <input class="field-input" value="{{exerciseForm.nameEn}}" data-field="nameEn" bindinput="onExerciseInput" />
+            </view>
+            <view class="field-grid">
+              <view class="form-item">
+                <text class="field-label">肌群</text>
+                <input class="field-input" value="{{exerciseForm.muscleZh}}" data-field="muscleZh" bindinput="onExerciseInput" />
+              </view>
+              <view class="form-item">
+                <text class="field-label">器械</text>
+                <input class="field-input" value="{{exerciseForm.equipmentZh}}" data-field="equipmentZh" bindinput="onExerciseInput" />
+              </view>
+            </view>
+            <view class="form-item">
+              <text class="field-label">图片 URL / cloud fileID</text>
+              <input class="field-input" value="{{exerciseForm.imageUrl}}" data-field="imageUrl" bindinput="onExerciseInput" />
+            </view>
+            <view class="editor-actions">
+              <button class="primary-action" loading="{{saving}}" bindtap="saveExercise">保存</button>
+              <button class="ghost-action" bindtap="cancelExerciseEdit">取消</button>
+            </view>
+          </view>
 
-    <view class="section">
-      <view class="section-title">维护模块</view>
-      <view class="list">
-        <view class="list-item">
-          <view class="item-title">动作库 exercises</view>
-          <view class="item-meta">维护动作名称、中文字段、肌群、器械和图片</view>
+          <view wx:if="{{hasExercises}}" class="admin-list">
+            <view wx:for="{{exercises}}" wx:key="docId" class="admin-record">
+              <image class="record-cover" src="{{item.imageUrl}}" mode="aspectFill" />
+              <view class="record-content">
+                <view class="record-title">{{item.title}}</view>
+                <view wx:if="{{item.nameEn}}" class="record-meta">{{item.nameEn}}</view>
+                <view class="record-foot">{{item.meta}}</view>
+              </view>
+              <view class="record-actions">
+                <button class="text-action" data-index="{{index}}" bindtap="editExercise">编辑</button>
+                <button class="text-action danger-text" data-id="{{item.docId}}" loading="{{deletingId == item.docId}}" bindtap="deleteExercise">删除</button>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="empty-state">暂无动作</view>
         </view>
-        <view class="list-item">
-          <view class="item-title">饮食记录 meals</view>
-          <view class="item-meta">查看和修正用户饮食数据</view>
+
+        <view wx:elif="{{activeTab == 'learn'}}">
+          <view wx:if="{{editingLearn}}" class="editor-panel">
+            <view class="editor-title">学习内容编辑</view>
+            <view class="field-grid">
+              <view class="form-item">
+                <text class="field-label">标题</text>
+                <input class="field-input" value="{{learnForm.title}}" data-field="title" bindinput="onLearnInput" />
+              </view>
+              <view class="form-item">
+                <text class="field-label">部位</text>
+                <input class="field-input" value="{{learnForm.muscle}}" placeholder="例如 胸部" data-field="muscle" bindinput="onLearnInput" />
+              </view>
+            </view>
+            <view class="form-item">
+              <text class="field-label">简介</text>
+              <input class="field-input" value="{{learnForm.summary}}" data-field="summary" bindinput="onLearnInput" />
+            </view>
+            <view class="field-grid">
+              <input class="field-input" value="{{learnForm.durationText}}" placeholder="时长，如 3 分钟" data-field="durationText" bindinput="onLearnInput" />
+              <input class="field-input" type="number" value="{{learnForm.sort}}" placeholder="排序" data-field="sort" bindinput="onLearnInput" />
+            </view>
+            <view class="form-item">
+              <text class="field-label">封面 URL / cloud fileID</text>
+              <input class="field-input" value="{{learnForm.coverUrl}}" data-field="coverUrl" bindinput="onLearnInput" />
+            </view>
+            <view class="form-item">
+              <text class="field-label">视频 URL / cloud fileID</text>
+              <input class="field-input" value="{{learnForm.videoUrl}}" data-field="videoUrl" bindinput="onLearnInput" />
+            </view>
+            <view class="editor-actions">
+              <button class="primary-action" loading="{{saving}}" bindtap="saveLearnContent">保存</button>
+              <button class="ghost-action" bindtap="cancelLearnEdit">取消</button>
+            </view>
+          </view>
+
+          <view wx:if="{{hasLearnContents}}" class="admin-list">
+            <view wx:for="{{learnContents}}" wx:key="docId" class="admin-record">
+              <image class="record-cover" src="{{item.coverUrl}}" mode="aspectFill" />
+              <view class="record-content">
+                <view class="record-title">{{item.title}}</view>
+                <view class="record-meta">{{item.summary}}</view>
+                <view class="record-foot">{{item.meta}}</view>
+              </view>
+              <view class="record-actions">
+                <button class="text-action" data-index="{{index}}" bindtap="editLearnContent">编辑</button>
+                <button class="text-action danger-text" data-id="{{item.docId}}" loading="{{deletingId == item.docId}}" bindtap="deleteLearnContent">删除</button>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="empty-state">暂无学习内容</view>
         </view>
-        <view class="list-item">
-          <view class="item-title">训练记录 workouts</view>
-          <view class="item-meta">查看和修正用户训练数据</view>
+
+        <view wx:elif="{{activeTab == 'workouts'}}">
+          <view wx:if="{{editingWorkout}}" class="editor-panel">
+            <view class="editor-title">训练编辑</view>
+            <view class="field-grid">
+              <view class="form-item">
+                <text class="field-label">日期</text>
+                <input class="field-input" value="{{workoutForm.date}}" data-field="date" bindinput="onWorkoutInput" />
+              </view>
+              <view class="form-item">
+                <text class="field-label">动作</text>
+                <input class="field-input" value="{{workoutForm.exerciseName}}" data-field="exerciseName" bindinput="onWorkoutInput" />
+              </view>
+            </view>
+            <view class="triple-grid">
+              <input class="field-input" type="number" value="{{workoutForm.sets}}" placeholder="组数" data-field="sets" bindinput="onWorkoutInput" />
+              <input class="field-input" type="number" value="{{workoutForm.reps}}" placeholder="次数" data-field="reps" bindinput="onWorkoutInput" />
+              <input class="field-input" type="digit" value="{{workoutForm.weight}}" placeholder="重量" data-field="weight" bindinput="onWorkoutInput" />
+            </view>
+            <view class="form-item">
+              <text class="field-label">备注</text>
+              <input class="field-input" value="{{workoutForm.note}}" data-field="note" bindinput="onWorkoutInput" />
+            </view>
+            <view class="editor-actions">
+              <button class="primary-action" loading="{{saving}}" bindtap="saveWorkout">保存</button>
+              <button class="ghost-action" bindtap="cancelWorkoutEdit">取消</button>
+            </view>
+          </view>
+
+          <view wx:if="{{hasWorkouts}}" class="admin-list">
+            <view wx:for="{{workouts}}" wx:key="docId" class="admin-record">
+              <view class="record-content">
+                <view class="record-title">{{item.title}}</view>
+                <view class="record-meta">{{item.meta}}</view>
+                <view wx:if="{{item.note}}" class="record-note">{{item.note}}</view>
+                <view class="record-foot openid">{{item.ownerOpenid}}</view>
+              </view>
+              <view class="record-actions">
+                <button class="text-action" data-index="{{index}}" bindtap="editWorkout">编辑</button>
+                <button class="text-action danger-text" data-id="{{item.docId}}" loading="{{deletingId == item.docId}}" bindtap="deleteWorkout">删除</button>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="empty-state">暂无训练记录</view>
         </view>
-        <view class="list-item">
-          <view class="item-title">用户 users</view>
-          <view class="item-meta">维护用户角色，role 为 admin 时显示管理员入口</view>
+
+        <view wx:else>
+          <view wx:if="{{editingMeal}}" class="editor-panel">
+            <view class="editor-title">饮食编辑</view>
+            <view class="field-grid">
+              <view class="form-item">
+                <text class="field-label">日期</text>
+                <input class="field-input" value="{{mealForm.date}}" data-field="date" bindinput="onMealInput" />
+              </view>
+              <view class="form-item">
+                <text class="field-label">餐次</text>
+                <input class="field-input" value="{{mealForm.type}}" data-field="type" bindinput="onMealInput" />
+              </view>
+            </view>
+            <view class="form-item">
+              <text class="field-label">食物</text>
+              <input class="field-input" value="{{mealForm.food}}" data-field="food" bindinput="onMealInput" />
+            </view>
+            <view class="field-grid">
+              <input class="field-input" type="number" value="{{mealForm.calories}}" placeholder="热量" data-field="calories" bindinput="onMealInput" />
+              <input class="field-input" type="digit" value="{{mealForm.protein}}" placeholder="蛋白质" data-field="protein" bindinput="onMealInput" />
+            </view>
+            <view class="form-item">
+              <text class="field-label">备注</text>
+              <input class="field-input" value="{{mealForm.note}}" data-field="note" bindinput="onMealInput" />
+            </view>
+            <view class="editor-actions">
+              <button class="primary-action" loading="{{saving}}" bindtap="saveMeal">保存</button>
+              <button class="ghost-action" bindtap="cancelMealEdit">取消</button>
+            </view>
+          </view>
+
+          <view wx:if="{{hasMeals}}" class="admin-list">
+            <view wx:for="{{meals}}" wx:key="docId" class="admin-record">
+              <view class="record-content">
+                <view class="record-title">{{item.title}}</view>
+                <view class="record-meta">{{item.meta}}</view>
+                <view wx:if="{{item.note}}" class="record-note">{{item.note}}</view>
+                <view class="record-foot openid">{{item.ownerOpenid}}</view>
+              </view>
+              <view class="record-actions">
+                <button class="text-action" data-index="{{index}}" bindtap="editMeal">编辑</button>
+                <button class="text-action danger-text" data-id="{{item.docId}}" loading="{{deletingId == item.docId}}" bindtap="deleteMeal">删除</button>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="empty-state">暂无饮食记录</view>
         </view>
       </view>
     </view>

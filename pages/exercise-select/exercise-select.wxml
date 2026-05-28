@@ -43,7 +43,10 @@
         />
         <view class="muscle-body">
           <view class="muscle-name">{{item.name}}</view>
-          <view class="muscle-count">{{item.count}} 个动作</view>
+          <view class="muscle-footer">
+            <view class="muscle-count">{{item.count}} 个动作</view>
+            <button class="learn-entry" data-index="{{index}}" catchtap="goLearn">学习</button>
+          </view>
         </view>
       </view>
     </view>

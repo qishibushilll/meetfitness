@@ -1,4 +1,5 @@
 const store = require("../../utils/store");
+const auth = require("../../utils/auth");
 const { formatDate } = require("../../utils/date");
 
 function defaultForm() {
@@ -17,6 +18,8 @@ Page({
     selectedExerciseName: "选择动作",
     selectedExerciseMeta: "从动作库中选择",
     form: defaultForm(),
+    recommendedExercises: [],
+    hasRecommendedExercises: false,
     selectedDateWorkouts: []
   },
 
@@ -33,7 +36,26 @@ Page({
       }
     }
 
+    if (!this.data.recommendedExercises.length) {
+      await this.loadRecommendedExercises();
+    }
+
     await this.refreshWorkouts(this.data.form.date);
+  },
+
+  async loadRecommendedExercises() {
+    try {
+      const exercises = await store.getExercises({ limit: 10, fallback: true });
+      this.setData({
+        recommendedExercises: exercises,
+        hasRecommendedExercises: Boolean(exercises.length)
+      });
+    } catch (error) {
+      this.setData({
+        recommendedExercises: [],
+        hasRecommendedExercises: false
+      });
+    }
   },
 
   setSelectedExercise(exercise) {
@@ -63,6 +85,16 @@ Page({
     wx.navigateTo({ url: "/pages/exercise-select/exercise-select" });
   },
 
+  selectRecommendedExercise(event) {
+    const exercise = this.data.recommendedExercises[event.currentTarget.dataset.index];
+    if (!exercise) {
+      return;
+    }
+
+    wx.setStorageSync("fitness.selectedExercise", exercise);
+    this.setSelectedExercise(exercise);
+  },
+
   onInput(event) {
     const field = event.currentTarget.dataset.field;
     this.setData({
@@ -71,6 +103,11 @@ Page({
   },
 
   async saveWorkout() {
+    const profile = await auth.requireRegistered();
+    if (!profile) {
+      return;
+    }
+
     const exercise = this.data.selectedExercise;
     const { sets, reps } = this.data.form;
 
@@ -98,6 +135,11 @@ Page({
   },
 
   async removeWorkout(event) {
+    const profile = await auth.requireRegistered();
+    if (!profile) {
+      return;
+    }
+
     await store.removeWorkout(event.currentTarget.dataset.id);
     await this.refreshWorkouts(this.data.form.date);
   }

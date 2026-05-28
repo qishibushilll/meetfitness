@@ -6,7 +6,8 @@ const KEYS = {
   meals: "fitness.meals",
   exercises: "fitness.exercises",
   userProfile: "fitness.userProfile",
-  exerciseSubmissions: "fitness.exerciseSubmissions"
+  exerciseSubmissions: "fitness.exerciseSubmissions",
+  learnContents: "fitness.learnContents"
 };
 
 const COLLECTIONS = {
@@ -14,8 +15,36 @@ const COLLECTIONS = {
   meals: "meals",
   exercises: "exercises",
   users: "users",
-  exerciseSubmissions: "exerciseSubmissions"
+  exerciseSubmissions: "exerciseSubmissions",
+  learnContents: "learnContents"
 };
+
+const DEFAULT_LEARN_CONTENTS = [
+  {
+    id: "learn_chest_basics",
+    muscle: "胸部",
+    title: "胸部训练入门",
+    summary: "了解卧推动作、肩胛稳定和推类训练常见错误。",
+    type: "guide",
+    durationText: "3 分钟",
+    coverUrl: "/assets/app-icon-256.png",
+    videoUrl: "",
+    sort: 10,
+    status: "published"
+  },
+  {
+    id: "learn_back_basics",
+    muscle: "背阔肌",
+    title: "背部发力基础",
+    summary: "学习下拉、划船和肩胛控制，减少手臂代偿。",
+    type: "guide",
+    durationText: "4 分钟",
+    coverUrl: "/assets/app-icon-256.png",
+    videoUrl: "",
+    sort: 10,
+    status: "published"
+  }
+];
 
 const DEFAULT_EXERCISES = [
   {
@@ -159,6 +188,105 @@ function normalizeExerciseSubmission(item = {}) {
   };
 }
 
+function normalizeLearnContent(item = {}) {
+  return {
+    ...item,
+    id: item._id || item.id || "",
+    title: item.title || "未命名学习内容",
+    summary: item.summary || "",
+    muscle: item.muscle || "",
+    type: item.type || "video",
+    durationText: item.durationText || "",
+    coverUrl: item.coverUrl || "/assets/app-icon-256.png",
+    coverFileId: item.coverFileId || "",
+    videoUrl: item.videoUrl || "",
+    videoFileId: item.videoFileId || "",
+    sort: Number(item.sort) || 0,
+    status: item.status || "published",
+    hasVideo: Boolean(item.videoUrl || item.videoFileId)
+  };
+}
+
+function normalizeAdminUser(item = {}) {
+  const updatedAt = item.updatedAt || item.createdAt || Date.now();
+  const updatedAtDate = new Date(updatedAt);
+  const updatedAtText = Number.isNaN(updatedAtDate.getTime())
+    ? ""
+    : `${updatedAtDate.getFullYear()}-${String(updatedAtDate.getMonth() + 1).padStart(2, "0")}-${String(
+        updatedAtDate.getDate()
+      ).padStart(2, "0")}`;
+
+  return {
+    ...item,
+    id: item._id || item.id || "",
+    openid: item._openid || item.openid || "",
+    nickName: item.nickName || "未命名用户",
+    role: item.role === "admin" ? "admin" : "user",
+    roleText: item.role === "admin" ? "管理员" : "用户",
+    registered: Boolean(item.registered),
+    registeredText: item.registered ? "已登录" : "未完成",
+    avatarUrl: item.avatarUrl || "/assets/app-icon-256.png",
+    updatedAtText
+  };
+}
+
+function normalizeAdminWorkout(item = {}) {
+  const normalized = normalizeWorkout(item);
+  return {
+    ...normalized,
+    docId: item._id || item.docId || normalized.id,
+    ownerOpenid: item._openid || item.ownerOpenid || "",
+    title: normalized.exerciseName || "未命名训练",
+    meta: `${normalized.date || "未设置日期"} · ${normalized.sets} 组 x ${normalized.reps} 次 · ${normalized.weight} kg`
+  };
+}
+
+function normalizeAdminMeal(item = {}) {
+  const normalized = normalizeMeal(item);
+  return {
+    ...normalized,
+    docId: item._id || item.docId || normalized.id,
+    ownerOpenid: item._openid || item.ownerOpenid || "",
+    title: `${normalized.type || "饮食"} · ${normalized.food || "未命名食物"}`,
+    meta: `${normalized.date || "未设置日期"} · ${normalized.calories} kcal · 蛋白质 ${normalized.protein} g`
+  };
+}
+
+function normalizeAdminExercise(item = {}) {
+  const normalized = normalizeExercise(item);
+  return {
+    ...normalized,
+    docId: item._id || item.docId || normalized.id,
+    title: normalized.name,
+    meta: `${normalized.muscle} · ${normalized.equipment}`
+  };
+}
+
+function normalizeAdminLearnContent(item = {}) {
+  const normalized = normalizeLearnContent(item);
+  return {
+    ...normalized,
+    docId: item._id || item.docId || normalized.id,
+    title: normalized.title,
+    meta: `${normalized.muscle} · ${normalized.status === "draft" ? "草稿" : "已发布"} · 排序 ${normalized.sort}`
+  };
+}
+
+async function callAdminApi(action, data = {}) {
+  if (!canUseCloud()) {
+    throw new Error("Cloud admin API is unavailable");
+  }
+
+  const result = await wx.cloud.callFunction({
+    name: "adminApi",
+    data: {
+      ...data,
+      action
+    }
+  });
+  return result.result || {};
+}
+
 async function getUserProfile() {
   const cached = wx.getStorageSync(KEYS.userProfile);
 
@@ -174,6 +302,14 @@ async function getUserProfile() {
       }
     });
     const profile = normalizeUserProfile(result.result.user);
+    if (!profile.registered && cached && cached.registered && cached.nickName) {
+      return updateUserProfile({
+        nickName: cached.nickName,
+        avatarUrl: cached.avatarUrl || "",
+        avatarFileId: cached.avatarFileId || "",
+        gender: cached.gender || ""
+      });
+    }
     wx.setStorageSync(KEYS.userProfile, profile);
     return profile;
   } catch (error) {
@@ -214,28 +350,13 @@ async function getAdminStats() {
       exercises: exercises.length,
       meals: meals.length,
       workouts: workouts.length,
-      users: 0
+      users: 0,
+      submissions: getList(KEYS.exerciseSubmissions || "fitness.exerciseSubmissions").length
     };
   }
 
-  async function count(collection) {
-    try {
-      const result = await db().collection(collection).count();
-      return result.total || 0;
-    } catch (error) {
-      console.warn(`Failed to count ${collection}`, error);
-      return 0;
-    }
-  }
-
-  const [exercises, meals, workouts, users] = await Promise.all([
-    count(COLLECTIONS.exercises),
-    count(COLLECTIONS.meals),
-    count(COLLECTIONS.workouts),
-    count(COLLECTIONS.users)
-  ]);
-
-  return { exercises, meals, workouts, users };
+  const result = await callAdminApi("dashboard");
+  return result.stats || { exercises: 0, learnContents: 0, meals: 0, workouts: 0, users: 0, submissions: 0 };
 }
 
 async function getPendingExerciseSubmissions() {
@@ -271,6 +392,102 @@ async function reviewExerciseSubmission(id, decision, reviewNote = "") {
 
   wx.removeStorageSync(KEYS.exercises);
   return result.result;
+}
+
+async function getAdminUsers() {
+  const result = await callAdminApi("listUsers");
+  return (result.users || []).map(normalizeAdminUser);
+}
+
+async function setAdminUserRole(id, role) {
+  return callAdminApi("setUserRole", { id, role });
+}
+
+async function deleteAdminUser(id) {
+  return callAdminApi("deleteUser", { id });
+}
+
+async function getAdminExercises() {
+  if (!canUseCloud()) {
+    return getList(KEYS.exercises).map(normalizeAdminExercise);
+  }
+
+  const result = await callAdminApi("listExercises");
+  return (result.exercises || []).map(normalizeAdminExercise);
+}
+
+async function saveAdminExercise(exercise) {
+  const result = await callAdminApi("saveExercise", { exercise });
+  wx.removeStorageSync(KEYS.exercises);
+  return result;
+}
+
+async function deleteAdminExercise(id) {
+  const result = await callAdminApi("deleteExercise", { id });
+  wx.removeStorageSync(KEYS.exercises);
+  return result;
+}
+
+async function getAdminLearnContents() {
+  const result = await callAdminApi("listLearnContents");
+  return (result.learnContents || []).map(normalizeAdminLearnContent);
+}
+
+async function saveAdminLearnContent(learnContent) {
+  return callAdminApi("saveLearnContent", { learnContent });
+}
+
+async function deleteAdminLearnContent(id) {
+  return callAdminApi("deleteLearnContent", { id });
+}
+
+async function getAdminWorkouts() {
+  if (!canUseCloud()) {
+    return getList(KEYS.workouts).map(normalizeAdminWorkout);
+  }
+
+  const result = await callAdminApi("listWorkouts");
+  return (result.workouts || []).map(normalizeAdminWorkout);
+}
+
+async function saveAdminWorkout(workout) {
+  return callAdminApi("saveWorkout", { workout });
+}
+
+async function deleteAdminWorkout(id) {
+  return callAdminApi("deleteWorkout", { id });
+}
+
+async function getAdminMeals() {
+  if (!canUseCloud()) {
+    return getList(KEYS.meals).map(normalizeAdminMeal);
+  }
+
+  const result = await callAdminApi("listMeals");
+  return (result.meals || []).map(normalizeAdminMeal);
+}
+
+async function saveAdminMeal(meal) {
+  return callAdminApi("saveMeal", { meal });
+}
+
+async function deleteAdminMeal(id) {
+  return callAdminApi("deleteMeal", { id });
+}
+
+async function getAdminExerciseSubmissions(status = "all") {
+  if (!canUseCloud()) {
+    return getList(KEYS.exerciseSubmissions || "fitness.exerciseSubmissions")
+      .filter((item) => status === "all" || item.status === status)
+      .map(normalizeExerciseSubmission);
+  }
+
+  const result = await callAdminApi("listSubmissions", { status });
+  return (result.submissions || []).map(normalizeExerciseSubmission);
+}
+
+async function deleteAdminExerciseSubmission(id) {
+  return callAdminApi("deleteSubmission", { id });
 }
 
 async function submitExerciseSubmission(payload) {
@@ -347,6 +564,42 @@ async function getExercises(options = {}) {
   return getList(KEYS.exercises).map(normalizeExercise);
 }
 
+async function getLearnContents(muscle) {
+  const targetMuscle = String(muscle || "").trim();
+  if (!targetMuscle) {
+    return [];
+  }
+
+  if (!canUseCloud()) {
+    return DEFAULT_LEARN_CONTENTS.filter((item) => item.muscle === targetMuscle).map(normalizeLearnContent);
+  }
+
+  try {
+    const result = await wx.cloud.callFunction({
+      name: "exerciseApi",
+      data: {
+        action: "learnByMuscle",
+        muscle: targetMuscle,
+        limit: 50
+      }
+    });
+    const data = (result.result.data || []).map(normalizeLearnContent);
+    if (data.length) {
+      wx.setStorageSync(`${KEYS.learnContents}.${targetMuscle}`, data);
+      return data;
+    }
+  } catch (error) {
+    console.warn("Failed to load learn contents from cloud", error);
+  }
+
+  const cached = wx.getStorageSync(`${KEYS.learnContents}.${targetMuscle}`) || [];
+  if (cached.length) {
+    return cached.map(normalizeLearnContent);
+  }
+
+  return DEFAULT_LEARN_CONTENTS.filter((item) => item.muscle === targetMuscle).map(normalizeLearnContent);
+}
+
 async function getWorkouts() {
   if (!canUseCloud()) {
     return getList(KEYS.workouts).map(normalizeWorkout);
@@ -384,8 +637,10 @@ async function getMeals() {
 }
 
 async function addWorkout(payload) {
+  const profile = await getUserProfile();
   const record = {
     id: `w_${Date.now()}`,
+    openid: profile.openid || "",
     date: payload.date || formatDate(),
     exerciseId: payload.exerciseId,
     exerciseName: payload.exerciseName,
@@ -414,8 +669,10 @@ async function addWorkout(payload) {
 }
 
 async function addMeal(payload) {
+  const profile = await getUserProfile();
   const record = {
     id: `m_${Date.now()}`,
+    openid: profile.openid || "",
     date: payload.date || formatDate(),
     type: payload.type || "加餐",
     food: payload.food,
@@ -550,6 +807,7 @@ async function summarizeHistory() {
 module.exports = {
   ensureSeedData,
   getExercises,
+  getLearnContents,
   getWorkouts,
   getMeals,
   getUserProfile,
@@ -557,6 +815,23 @@ module.exports = {
   getAdminStats,
   getPendingExerciseSubmissions,
   reviewExerciseSubmission,
+  getAdminUsers,
+  setAdminUserRole,
+  deleteAdminUser,
+  getAdminExercises,
+  saveAdminExercise,
+  deleteAdminExercise,
+  getAdminLearnContents,
+  saveAdminLearnContent,
+  deleteAdminLearnContent,
+  getAdminWorkouts,
+  saveAdminWorkout,
+  deleteAdminWorkout,
+  getAdminMeals,
+  saveAdminMeal,
+  deleteAdminMeal,
+  getAdminExerciseSubmissions,
+  deleteAdminExerciseSubmission,
   submitExerciseSubmission,
   addWorkout,
   addMeal,

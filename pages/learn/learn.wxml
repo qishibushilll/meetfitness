@@ -1,0 +1,34 @@
+<view class="page">
+  <view class="learn-hero">
+    <view class="learn-kicker">Learning</view>
+    <view class="learn-title">{{muscle}}</view>
+    <view class="learn-subtitle">学习训练要点、动作示范和常见错误</view>
+  </view>
+
+  <view wx:if="{{activeVideoUrl}}" class="section panel video-panel">
+    <view class="section-title">{{activeTitle}}</view>
+    <video class="learn-video" src="{{activeVideoUrl}}" controls object-fit="contain" />
+  </view>
+
+  <view wx:if="{{loading}}" class="panel empty">正在加载学习内容</view>
+
+  <view wx:elif="{{hasContents}}" class="section">
+    <view class="section-title">学习内容</view>
+    <view class="learn-list">
+      <view wx:for="{{contents}}" wx:key="id" class="learn-card">
+        <image class="learn-cover" src="{{item.coverUrl}}" mode="aspectFill" />
+        <view class="learn-body">
+          <view class="learn-card-title">{{item.title}}</view>
+          <view wx:if="{{item.summary}}" class="learn-summary">{{item.summary}}</view>
+          <view class="learn-meta">{{item.durationText || item.type}}</view>
+        </view>
+        <button class="learn-button" data-index="{{index}}" bindtap="playContent">播放</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="panel empty">
+    <view>暂无学习内容</view>
+    <view class="empty-hint">可以先在 learnContents 集合中配置视频链接和封面</view>
+  </view>
+</view>

@@ -4,6 +4,39 @@
     <view class="subtitle">点击动作图片选择训练动作</view>
   </view>
 
+  <view wx:if="{{hasRecommendedExercises}}" class="section recommend-section">
+    <view class="row-between recommend-head">
+      <view class="section-title">推荐动作</view>
+      <button class="link-more" bindtap="chooseExercise">更多</button>
+    </view>
+    <swiper
+      class="recommend-swiper"
+      autoplay
+      circular
+      interval="3200"
+      duration="450"
+      indicator-dots
+      indicator-color="#d2dadd"
+      indicator-active-color="#0f7b6c"
+    >
+      <swiper-item wx:for="{{recommendedExercises}}" wx:key="exerciseId">
+        <view
+          class="recommend-card"
+          data-index="{{index}}"
+          bindtap="selectRecommendedExercise"
+        >
+          <image class="recommend-image" src="{{item.imageUrl}}" mode="aspectFill" />
+          <view class="recommend-body">
+            <view class="recommend-label">推荐动作</view>
+            <view class="recommend-title">{{item.name}}</view>
+            <view class="recommend-meta">{{item.muscle}} · {{item.equipment}}</view>
+          </view>
+          <view class="recommend-cta">选择</view>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+
   <view class="section panel">
     <view class="form-item">
       <text class="label">日期</text>

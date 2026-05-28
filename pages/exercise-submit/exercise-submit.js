@@ -1,4 +1,5 @@
 const store = require("../../utils/store");
+const auth = require("../../utils/auth");
 
 const MUSCLE_OPTIONS = [
   "胸部",
@@ -114,6 +115,11 @@ Page({
   },
 
   async submitExercise() {
+    const profile = await auth.requireRegistered();
+    if (!profile) {
+      return;
+    }
+
     const name = this.data.form.name.trim();
     const muscle = this.data.form.muscle.trim();
 

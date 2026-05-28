@@ -44,18 +44,6 @@
   background: #eef2f4;
 }
 
-.role-badge {
-  flex: 0 0 128rpx;
-  height: 52rpx;
-  border-radius: 10rpx;
-  background: #eef5f3;
-  color: #0f7b6c;
-  font-size: 24rpx;
-  font-weight: 700;
-  line-height: 52rpx;
-  text-align: center;
-}
-
 .admin-entry {
   border-color: #0f7b6c;
 }

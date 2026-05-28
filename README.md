@@ -11,14 +11,16 @@
 - `meals`: 用户饮食记录
 - `users`: 用户资料和角色
 - `exerciseSubmissions`: 用户提交的新增动作，管理员审核后进入动作库
+- `learnContents`: 学习内容元数据，只保存标题、部位、封面和视频链接，不保存视频本体
 
 建议权限：
 
 - `exercises`: 所有人可读，仅管理员可写
 - `workouts`: 仅创建者可读写
 - `meals`: 仅创建者可读写
-- `users`: 仅创建者可读写；管理员维护建议通过云函数
-- `exerciseSubmissions`: 仅创建者可写，管理员通过云函数审核
+- `users`: 仅创建者可读写；管理员角色维护通过 `adminApi`
+- `exerciseSubmissions`: 仅创建者可写，管理员通过 `adminApi` 审核和清理
+- `learnContents`: 所有人可读，仅管理员通过 `adminApi` 写入
 
 ## 导入动作库
 
@@ -110,6 +112,42 @@ seed 动作会同时写入中文字段，例如 `nameZh`、`muscleZh`、`equipme
 
 导入前页面不会再显示本地默认动作图，以免把应用图标误认为真实动作图片。
 
+## 迁移动作图片到云存储
+
+体验版和正式版不要直接依赖 GitHub `raw.githubusercontent.com` 图片。国内网络不稳定，小程序线上环境也不能关闭合法域名校验。推荐把已有动作库里的远程图片迁移到云存储。
+
+1. 上传并部署 `cloudfunctions/migrateExerciseImages`
+2. 在云函数测试入口分批运行：
+
+```json
+{
+  "limit": 5,
+  "offset": 0
+}
+```
+
+然后依次把 `offset` 改成 `5`、`10`、`15` 继续运行，直到返回的 `scanned` 小于 `limit`。
+
+迁移成功后，每条动作会更新：
+
+```json
+{
+  "imageFileId": "cloud://...",
+  "imageUrl": "cloud://...",
+  "rawImageUrl": "https://raw.githubusercontent.com/..."
+}
+```
+
+小程序通过 `exerciseApi` 读取动作时，会把 `imageFileId` 转成临时 URL 返回给页面。若某批次超时或失败，把 `limit` 调成 `2` 或 `3` 再重试。已经有 `imageFileId` 的记录默认会跳过；需要强制重传可传：
+
+```json
+{
+  "limit": 3,
+  "offset": 0,
+  "force": true
+}
+```
+
 如果云开发控制台弹出白页并显示 `something wrong with request handler`，通常是开发者工具内置控制台页面异常。可以先关闭这个弹窗，仍然在左侧文件树里右键云函数文件夹部署；之后升级或重启微信开发者工具，再从顶部 `云开发` 入口进入控制台测试云函数。
 
 动作数据源：
@@ -124,9 +162,11 @@ seed 动作会同时写入中文字段，例如 `nameZh`、`muscleZh`、`equipme
 - 历史：按日期查看汇总
 - 我的：普通用户入口和管理员入口
 
-## 用户角色
+## 登录和用户角色
 
-用户登录和注册通过 `cloudfunctions/userApi` 完成。首次进入“我的”页时，云函数会用微信 openid 自动创建 `users` 记录，默认：
+游客可以浏览今日、训练、饮食、历史、动作选择和动作提交表单。涉及新增、修改、删除或提交审核时才要求登录；未登录用户会被引导到“我的”页，填写昵称并保存后，`users.registered` 会变为 `true`，之后才能执行写操作。
+
+用户登录通过 `cloudfunctions/userApi` 完成。首次进入“我的”页时，云函数会用微信 openid 自动创建 `users` 记录，默认：
 
 ```json
 {
@@ -137,6 +177,7 @@ seed 动作会同时写入中文字段，例如 `nameZh`、`muscleZh`、`equipme
 
 用户填写昵称后，`registered` 会变为 `true`。
 头像通过“我的”页的微信头像选择能力获取，并上传到云存储 `user-avatars/` 目录；`users` 记录会保存 `avatarFileId` 和 `avatarUrl`。
+`userApi` 会同时保存 `openid` 字段，并兼容按 `_openid` 或 `openid` 找回用户，避免登录后再次执行保存操作时被误判为未登录。
 
 要让某个账号看到管理员入口，在云开发数据库 `users` 集合中把该用户记录改成：
 
@@ -146,19 +187,23 @@ seed 动作会同时写入中文字段，例如 `nameZh`、`muscleZh`、`equipme
 }
 ```
 
-当前版本先做页面入口控制。生产环境还需要把管理员写操作放到云函数里，并在云函数中校验 `users.role === "admin"`，避免普通用户绕过前端直接改数据库。
+管理员入口和所有管理员操作都通过 `adminApi` 校验 `users.role === "admin"` 且 `registered === true`。管理员不能在后台取消自己的管理员角色，也不能删除自己的账号。
 
-## 管理员审核动作
+## 管理员功能
 
 用户在动作选择页点击“找不到动作？提交新动作”，可以填写动作名、训练部位、器械、说明并上传图片。提交后数据会进入 `exerciseSubmissions` 集合，状态为 `pending`。
 
-管理员进入“我的”页里的“数据库维护”，可以查看“待审核动作”：
+管理员进入“我的”页里的“管理员控制台”，可以使用这些管理模块：
 
-- 点击“通过”：`adminApi` 会把该动作写入正式 `exercises` 集合，并把提交记录标记为 `approved`
-- 点击“拒绝”：只把提交记录标记为 `rejected`，不会写入动作库
+- 审核：查看待审核或全部动作提交；通过后写入正式 `exercises` 集合，拒绝后只更新提交状态，也可以删除提交记录
+- 用户：查看用户资料、登录状态和角色；设置管理员或普通用户；删除用户
+- 动作：新增、编辑、删除动作库记录
+- 学习内容：维护部位学习内容、封面、视频链接和排序；视频文件建议放对象存储或 CDN，数据库只存 URL/fileID
+- 训练：查看、编辑、删除用户训练记录
+- 饮食：查看、编辑、删除用户饮食记录
 
-审核功能依赖：
+管理员功能依赖：
 
 - `cloudfunctions/exerciseSubmissionApi`：普通用户提交缺失动作
-- `cloudfunctions/adminApi`：管理员查看、通过、拒绝待审核动作
-- `users.role` 必须为 `admin`，否则 `adminApi` 会拒绝操作
+- `cloudfunctions/adminApi`：管理员统计、用户管理、动作管理、训练管理、饮食管理、动作审核
+- `users.role` 必须为 `admin`，且 `users.registered` 必须为 `true`，否则 `adminApi` 会拒绝操作
