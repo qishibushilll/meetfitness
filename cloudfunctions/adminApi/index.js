@@ -14,6 +14,7 @@ const COLLECTIONS = {
   workouts: "workouts",
   meals: "meals"
 };
+const TEMP_URL_BATCH_SIZE = 50;
 
 async function ensureCollection(name) {
   try {
@@ -121,9 +122,25 @@ async function withTempUrls(data, sourceField, targetField) {
     return data;
   }
 
-  const result = await cloud.getTempFileURL({ fileList: Array.from(new Set(fileIds)) });
   const urlMap = {};
-  result.fileList.forEach((item) => {
+  const uniqueFileIds = Array.from(new Set(fileIds));
+  const tasks = [];
+
+  for (let i = 0; i < uniqueFileIds.length; i += TEMP_URL_BATCH_SIZE) {
+    const fileList = uniqueFileIds.slice(i, i + TEMP_URL_BATCH_SIZE);
+    tasks.push(
+      cloud
+        .getTempFileURL({ fileList })
+        .then((result) => result.fileList || [])
+        .catch((error) => {
+          console.warn("Failed to get temp file URLs", error);
+          return [];
+        })
+    );
+  }
+
+  const results = await Promise.all(tasks);
+  results.flat().forEach((item) => {
     if (item.tempFileURL) {
       urlMap[item.fileID] = item.tempFileURL;
     }

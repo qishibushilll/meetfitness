@@ -8,6 +8,7 @@ const db = cloud.database();
 const _ = db.command;
 const EXERCISES = "exercises";
 const LEARN_CONTENTS = "learnContents";
+const TEMP_URL_BATCH_SIZE = 50;
 const zhKeywordMap = {
   腹肌: "abdominals",
   腹部: "abdominals",
@@ -66,18 +67,39 @@ async function withTempImageUrls(data) {
     return data;
   }
 
-  const result = await cloud.getTempFileURL({ fileList: fileIds });
+  const urlMap = await getTempUrlMap(fileIds);
+  return data.map((item) => ({
+    ...item,
+    imageUrl: urlMap[item.imageFileId] || item.imageUrl || item.rawImageUrl
+  }));
+}
+
+async function getTempUrlMap(fileIds) {
+  const uniqueFileIds = Array.from(new Set(fileIds));
   const urlMap = {};
-  result.fileList.forEach((item) => {
+  const tasks = [];
+
+  for (let i = 0; i < uniqueFileIds.length; i += TEMP_URL_BATCH_SIZE) {
+    const fileList = uniqueFileIds.slice(i, i + TEMP_URL_BATCH_SIZE);
+    tasks.push(
+      cloud
+        .getTempFileURL({ fileList })
+        .then((result) => result.fileList || [])
+        .catch((error) => {
+          console.warn("Failed to get temp file URLs", error);
+          return [];
+        })
+    );
+  }
+
+  const results = await Promise.all(tasks);
+  results.flat().forEach((item) => {
     if (item.tempFileURL) {
       urlMap[item.fileID] = item.tempFileURL;
     }
   });
 
-  return data.map((item) => ({
-    ...item,
-    imageUrl: urlMap[item.imageFileId] || item.imageUrl || item.rawImageUrl
-  }));
+  return urlMap;
 }
 
 async function withTempMediaUrls(data) {
@@ -95,13 +117,7 @@ async function withTempMediaUrls(data) {
     return data;
   }
 
-  const result = await cloud.getTempFileURL({ fileList: Array.from(new Set(fileIds)) });
-  const urlMap = {};
-  result.fileList.forEach((item) => {
-    if (item.tempFileURL) {
-      urlMap[item.fileID] = item.tempFileURL;
-    }
-  });
+  const urlMap = await getTempUrlMap(fileIds);
 
   return data.map((item) => ({
     ...item,
@@ -112,7 +128,7 @@ async function withTempMediaUrls(data) {
 
 exports.main = async (event) => {
   const action = event.action || "list";
-  const limit = Math.min(Number(event.limit) || 60, 100);
+  const limit = Math.min(Math.max(Number(event.limit) || 60, 1), 1000);
 
   if (action === "learnByMuscle") {
     const muscle = normalizeKeyword(event.muscle);

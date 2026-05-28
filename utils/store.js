@@ -18,6 +18,7 @@ const COLLECTIONS = {
   exerciseSubmissions: "exerciseSubmissions",
   learnContents: "learnContents"
 };
+const TEMP_URL_BATCH_SIZE = 50;
 
 const DEFAULT_LEARN_CONTENTS = [
   {
@@ -145,6 +146,82 @@ function normalizeMeal(item) {
     calories: Number(item.calories) || 0,
     protein: Number(item.protein) || 0
   };
+}
+
+async function getTempUrlMap(fileIds) {
+  if (!wx.cloud || !wx.cloud.getTempFileURL) {
+    return {};
+  }
+
+  const uniqueFileIds = Array.from(new Set(fileIds.filter((fileId) => fileId && String(fileId).startsWith("cloud://"))));
+  const urlMap = {};
+
+  for (let i = 0; i < uniqueFileIds.length; i += TEMP_URL_BATCH_SIZE) {
+    const fileList = uniqueFileIds.slice(i, i + TEMP_URL_BATCH_SIZE);
+    try {
+      const result = await wx.cloud.getTempFileURL({ fileList });
+      (result.fileList || []).forEach((item) => {
+        if (item.tempFileURL) {
+          urlMap[item.fileID] = item.tempFileURL;
+        }
+      });
+    } catch (error) {
+      console.warn("Failed to get temp file URLs", error);
+    }
+  }
+
+  return urlMap;
+}
+
+async function withExerciseTempUrls(items) {
+  const fileIds = items.map((item) => item.imageFileId).filter(Boolean);
+  const urlMap = await getTempUrlMap(fileIds);
+  return items.map((item) => ({
+    ...item,
+    imageUrl: urlMap[item.imageFileId] || item.imageUrl || item.rawImageUrl
+  }));
+}
+
+async function loadExercisesFromDb(options = {}) {
+  const limit = Math.min(Math.max(Number(options.limit) || 100, 1), 1000);
+  const keyword = (options.keyword || "").trim().toLowerCase();
+  const pageSize = 100;
+  const rows = [];
+
+  for (let offset = 0; offset < limit; offset += pageSize) {
+    const result = await db()
+      .collection(COLLECTIONS.exercises)
+      .orderBy("name", "asc")
+      .skip(offset)
+      .limit(Math.min(pageSize, limit - offset))
+      .get();
+    rows.push(...(result.data || []));
+    if (!result.data || result.data.length < pageSize) {
+      break;
+    }
+  }
+
+  let data = await withExerciseTempUrls(rows);
+
+  if (keyword) {
+    data = data.filter((item) => {
+      const fields = [
+        item.name,
+        item.nameZh,
+        item.displayName,
+        item.muscle,
+        item.muscleZh,
+        item.equipment,
+        item.equipmentZh,
+        item.categoryZh,
+        item.levelZh,
+        item.primaryMusclesText
+      ];
+      return fields.some((field) => String(field || "").toLowerCase().includes(keyword));
+    });
+  }
+
+  return data.map(normalizeExercise);
 }
 
 function normalizeUserProfile(item = {}) {
@@ -552,6 +629,15 @@ async function getExercises(options = {}) {
     }
   } catch (error) {
     console.warn("Failed to load exercises from cloud", error);
+    try {
+      const data = await loadExercisesFromDb({ keyword, limit });
+      if (data.length) {
+        setList(KEYS.exercises, data);
+        return data;
+      }
+    } catch (dbError) {
+      console.warn("Failed to load exercises from database fallback", dbError);
+    }
     if (!fallback) {
       throw error;
     }
